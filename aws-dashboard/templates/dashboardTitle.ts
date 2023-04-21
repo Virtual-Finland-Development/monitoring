@@ -6,6 +6,7 @@ export enum DashboardTitleSize {
 
 export class DashboardTitle {
   private _body: string = '';
+  private _bodyHeight: number = 1;
 
   public create(title: string, x: number, y: number, desiredTitleSize: DashboardTitleSize = DashboardTitleSize.LARGE) {
 
@@ -30,7 +31,7 @@ export class DashboardTitle {
       x: x,
       y: y,
       width: 15,
-      height: 1,
+      height: this._bodyHeight,
       properties: {
         markdown: formattedTitle,
         background: "transparent"
@@ -39,6 +40,7 @@ export class DashboardTitle {
   }
 
   withBody(body: string) {
+    this._bodyHeight = 2;
     this._body = body;
     return this;
   }
