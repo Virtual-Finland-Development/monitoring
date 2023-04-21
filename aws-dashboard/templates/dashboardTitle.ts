@@ -23,7 +23,7 @@ export class DashboardTitle {
         break;
     }
 
-    let formattedTitle = `${titleSize} ${title} ${this._body}`;
+    let formattedTitle = `${titleSize} ${title}\n${this._body}`;
 
     return {
       type: "text",
