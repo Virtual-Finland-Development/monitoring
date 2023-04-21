@@ -1,5 +1,6 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import {DashboardTitle} from "./templates/dashboardTitle";
 
 const stack = pulumi.getStack();
 const projectName = pulumi.getProject();
@@ -9,16 +10,8 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
   dashboardBody: JSON.stringify({
     widgets: [
-      {
-        type: "text",
-        x: 0,
-        y: 7,
-        width: 3,
-        height: 3,
-        properties: {
-          markdown: "Users API dashboard",
-        },
-      }
+      new DashboardTitle().create("Virtual Finland Development dashboard", 0, 0),
+      new DashboardTitle().create("Users API stats", 0, 10)
     ]
   })
 });
