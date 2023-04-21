@@ -44,4 +44,5 @@ jobs:
         run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
 
       - name: Preview Pulumi stack
+        working-directory: aws-dashboard
         run: pulumi preview
