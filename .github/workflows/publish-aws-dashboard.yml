@@ -1,4 +1,4 @@
-name: Publish AWS dashboard
+name: Publish AWS dashboard to selected environment
 
 on:
   workflow_dispatch:
@@ -46,3 +46,7 @@ jobs:
       - name: Preview Pulumi stack
         working-directory: aws-dashboard
         run: pulumi preview
+
+      - name: Deploy dashboard to AWS
+        working-directory: aws-dashboard
+        run: pulumi up -y
