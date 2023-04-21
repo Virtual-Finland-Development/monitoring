@@ -17,25 +17,31 @@ jobs:
     name: Preview Pulumi
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    env:
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '16.x'
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-region: ${{ env.aws_region }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Install Pulumi CLI
+        uses: pulumi/setup-pulumi@v2
+
       - name: Install dependencies
-        run: npm ci
         working-directory: aws-dashboard
-      - name: Pulumi preview
-        uses: pulumi/actions@v3
-        with:
-          work-dir: aws-dashboard
-          command: preview
-          stack-name: ${{ env.pulumi_organization }}/${{ inputs.environment }}
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+        run: npm ci
+
+      - name: Select Pulumi stack
+        working-directory: aws-dashboard
+        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
+
+      - name: Preview Pulumi stack
+        run: pulumi preview

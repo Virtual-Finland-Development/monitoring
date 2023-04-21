@@ -4,6 +4,7 @@ import * as aws from "@pulumi/aws";
 const stack = pulumi.getStack();
 const projectName = pulumi.getProject();
 
+// noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
   dashboardBody: JSON.stringify({
