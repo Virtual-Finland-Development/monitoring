@@ -43,6 +43,10 @@ jobs:
         working-directory: aws-dashboard
         run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
 
+      - name: Set organization in config
+        working-directory: aws-dashboard
+        run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
+
       - name: Preview Pulumi stack
         working-directory: aws-dashboard
         run: pulumi preview
