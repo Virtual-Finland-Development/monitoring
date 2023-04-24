@@ -26,7 +26,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         "properties": {
           "view": "gauge",
           "metrics": [
-            [ "AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", usersApiDb.getOutput('dbIdentifier') ]
+            [ "AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", usersApiDb.getOutput('dbIdentifier').apply(v => JSON.stringify(v)) ]
           ],
           "region": config.require('region'),
           "setPeriodToTimeRange": false,
