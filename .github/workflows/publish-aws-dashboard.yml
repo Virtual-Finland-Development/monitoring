@@ -9,7 +9,7 @@ on:
         required: true
 
 env:
-  pulumi_stack_organization: virtualfinland
+  PULUMI_ORGANIZATION: virtualfinland
   aws_region: eu-north-1
 
 jobs:
