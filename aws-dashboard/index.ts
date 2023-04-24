@@ -8,7 +8,7 @@ const config = new pulumi.Config();
 const org: string = config.require('org');
 
 // Stack references
-const usersApiDb = new pulumi.StackReference(`${org}/users-api-postgres-db/${stack}`);
+const usersApiDb = new pulumi.StackReference(`${org}/users-api/${stack}`);
 
 // noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
@@ -26,7 +26,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         "properties": {
           "view": "gauge",
           "metrics": [
-            [ "AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", usersApiDb.name ]
+            [ "AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", usersApiDb.getOutput('dbIdentifier') ]
           ],
           "region": config.require('region'),
           "setPeriodToTimeRange": false,

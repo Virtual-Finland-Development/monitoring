@@ -1,3 +1,3 @@
 config:
   aws-dashboard:org: virtualfinland
-  aws:region: eu-north-1
+  aws-dashboard:region: eu-north-1
