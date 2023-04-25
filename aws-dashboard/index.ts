@@ -10,7 +10,7 @@ const org: string = config.require('org');
 // Stack references
 const usersApiDb = new pulumi.StackReference(`${org}/users-api/${stack}`);
 
-const usersApiDbIdentifier = usersApiDb.getOutput('DbIdentifier');
+const usersApiDbIdentifier = usersApiDb.getOutputDetails('DbIdentifier');
 
 // noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
