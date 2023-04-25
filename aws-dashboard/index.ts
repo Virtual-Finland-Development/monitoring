@@ -18,30 +18,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardBody: JSON.stringify({
     widgets: [
       new DashboardTitle().withBody("Useful graphs and metrics for monitoring Virtual Finland services").create("Virtual Finland Development dashboard", 0, 0),
-      new DashboardTitle().create("Users API stats", 0, 10, DashboardTitleSize.MEDIUM),
-      {
-        "height": 5,
-        "width": 4,
-        "y": 2,
-        "x": 0,
-        "type": "metric",
-        "properties": {
-          "view": "gauge",
-          "metrics": [
-            [ "AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier",  pulumi.interpolate`${usersApiDbIdentifier}`]
-          ],
-          "region": config.require('region'),
-          "setPeriodToTimeRange": false,
-          "sparkline": true,
-          "trend": true,
-          "yAxis": {
-            "left": {
-              "min": 0,
-              "max": 100
-            }
-          }
-        }
-      }
+      new DashboardTitle().create("Users API stats", 0, 10, DashboardTitleSize.MEDIUM)
     ]
   })
 });
