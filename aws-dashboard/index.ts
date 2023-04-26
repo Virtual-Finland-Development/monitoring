@@ -8,12 +8,16 @@ const config = new pulumi.Config();
 const org: string = config.require('org');
 
 // Stack references
-const usersApiDb = new pulumi.StackReference(`${org}/users-api/${stack}`);
+const usersApiStackReference = new pulumi.StackReference(`${org}/users-api/${stack}`);
+const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput('DbIdentifier').apply(v => v.toString());
+
+// Combine all resources to single output that we can use below on the dashboard
+let resources = pulumi.all([usersApiDbInstanceIdentifier]);
 
 // noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
-  dashboardBody: usersApiDb.getOutput('DbIdentifier').apply(DbIdentifier =>
+  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier]) =>
     JSON.stringify({
       widgets: [
         new DashboardTitle().withBody("Useful graphs and metrics for monitoring Virtual Finland services").create("Virtual Finland Development dashboard", 0, 0),
@@ -27,7 +31,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           "properties": {
             "view": "gauge",
             "metrics": [
-              ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", DbIdentifier]
+              ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", usersApiDbInstanceIdentifier]
             ],
             "region": config.require('region'),
             "setPeriodToTimeRange": false,
