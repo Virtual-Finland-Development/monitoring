@@ -12,13 +12,16 @@ const usersApiStackReference = new pulumi.StackReference(`${org}/users-api/${sta
 const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput('DbIdentifier').apply(v => v.toString());
 const usersApiLambdaId = usersApiStackReference.getOutput('LambdaId').apply(v => v.toString());
 
+const testbedApiStackReference = new pulumi.StackReference(`${org}/testbed-api/${stack}`);
+const testbedApiLambdaId = testbedApiStackReference.getOutput('LambdaId').apply(v => v.toString());
+
 // Combine all resources to single output that we can use below on the dashboard
-let resources = pulumi.all([usersApiDbInstanceIdentifier, usersApiLambdaId]);
+let resources = pulumi.all([usersApiDbInstanceIdentifier, usersApiLambdaId, testbedApiLambdaId]);
 
 // noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
-  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier, usersApiLambdaId]) =>
+  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier, usersApiLambdaId, testbedApiLambdaId]) =>
     JSON.stringify({
       widgets: [
         new DashboardTitle().withBody("Useful graphs and metrics for monitoring Virtual Finland services").create("Virtual Finland Development dashboard", 0, 0),
@@ -58,6 +61,28 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             "stacked": false,
             "title": "Users API errors",
             "view": "table"
+          }
+        },
+        {
+          "height": 6,
+          "width": 7,
+          "y": 2,
+          "x": 7,
+          "type": "metric",
+          "properties": {
+            "metrics": [
+              [ "AWS/Lambda", "Duration", "FunctionName", usersApiLambdaId, { "id": "m1", "region": "eu-north-1", color: "#3e82e5", "label": "Duration Average", "stat": "Average" } ],
+              [ "...", { "id": "m2", "region": "eu-north-1", "color": "#8cc8f3" } ],
+              [ "...", { "id": "m3", "region": "eu-north-1", "color": "#38549a", "stat": "Maximum" } ],
+              [ ".", ".", ".", testbedApiLambdaId, { "stat": "Average", "color": "#c5b0d5" } ],
+              [ "...", { "color": "#f7b6d2" } ],
+              [ "...", { "stat": "Maximum", "color": "#d62728" } ]
+            ],
+            "view": "timeSeries",
+            "stacked": false,
+            "region": "eu-north-1",
+            "stat": "Minimum",
+            "period": 300
           }
         },
       ]
