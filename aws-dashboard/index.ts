@@ -10,14 +10,15 @@ const org: string = config.require('org');
 // Stack references
 const usersApiStackReference = new pulumi.StackReference(`${org}/users-api/${stack}`);
 const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput('DbIdentifier').apply(v => v.toString());
+const usersApiLambdaId = usersApiStackReference.getOutput('LambdaId').apply(v => v.toString());
 
 // Combine all resources to single output that we can use below on the dashboard
-let resources = pulumi.all([usersApiDbInstanceIdentifier]);
+let resources = pulumi.all([usersApiDbInstanceIdentifier, usersApiLambdaId]);
 
 // noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
-  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier]) =>
+  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier, usersApiLambdaId]) =>
     JSON.stringify({
       widgets: [
         new DashboardTitle().withBody("Useful graphs and metrics for monitoring Virtual Finland services").create("Virtual Finland Development dashboard", 0, 0),
@@ -44,7 +45,21 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               }
             }
           }
-        }
+        },
+        {
+          "height": 8,
+          "width": 15,
+          "y": 15,
+          "x": 0,
+          "type": "log",
+          "properties": {
+            "query": `SOURCE '/aws/lambda/${usersApiLambdaId}' | fields @timestamp, @@x, StatusCode, Elapsed\n| filter StatusCode = 500\n| sort @timestamp desc\n| limit 20`,
+            "region": "eu-north-1",
+            "stacked": false,
+            "title": "Users API errors",
+            "view": "table"
+          }
+        },
       ]
     }))
 });
