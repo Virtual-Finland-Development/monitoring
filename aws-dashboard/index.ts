@@ -60,6 +60,30 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             "view": "table"
           }
         },
+        {
+          "height": 6,
+          "width": 7,
+          "y": 2,
+          "x": 7,
+          "type": "metric",
+          "properties": {
+            "metrics": [
+              [ "AWS/Lambda", "Duration", "FunctionName", "users-api-dev-5135467", { "id": "m1", "region": "eu-north-1", color: "#3e82e5", "label": "Duration Average", "stat": "Average" } ],
+              [ "...", { "id": "m2", "region": "eu-north-1", "color": "#8cc8f3" } ],
+              [ "...", { "id": "m3", "region": "eu-north-1", "color": "#38549a", "stat": "Maximum" } ],
+              /*
+              [ ".", ".", ".", "testbed-api-dev-a0e8646", { "stat": "Average", "color": "#c5b0d5" } ],
+              [ "...", { "color": "#f7b6d2" } ],
+              [ "...", { "stat": "Maximum", "color": "#d62728" } ]
+              */
+            ],
+            "view": "timeSeries",
+            "stacked": false,
+            "region": "eu-north-1",
+            "stat": "Minimum",
+            "period": 300
+          }
+        },
       ]
     }))
 });
