@@ -71,12 +71,12 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           "type": "metric",
           "properties": {
             "metrics": [
-              [ "AWS/Lambda", "Duration", "FunctionName", usersApiLambdaId, { "id": "m1", "region": "eu-north-1", color: "#3e82e5", "label": "Duration Average", "stat": "Average" } ],
-              [ "...", { "id": "m2", "region": "eu-north-1", "color": "#8cc8f3" } ],
-              [ "...", { "id": "m3", "region": "eu-north-1", "color": "#38549a", "stat": "Maximum" } ],
-              [ ".", ".", ".", testbedApiLambdaId, { "stat": "Average", "color": "#c5b0d5" } ],
-              [ "...", { "color": "#f7b6d2" } ],
-              [ "...", { "stat": "Maximum", "color": "#d62728" } ]
+              [ "AWS/Lambda", "Duration", "FunctionName", usersApiLambdaId, { "id": "m1", "region": "eu-north-1", "color": "#3e82e5", "label": "Users API (Avg)", "stat": "Average" } ],
+              [ "...", { "id": "m2", "region": "eu-north-1", "color": "#8cc8f3", "label": "Users API (Min)" } ],
+              [ "...", { "id": "m3", "region": "eu-north-1", "color": "#38549a", "label": "Users API (Max)", "stat": "Maximum" } ],
+              [ ".", ".", ".", testbedApiLambdaId, { "stat": "Average", "color": "#c5b0d5", "label": "Testbed API (Avg)" } ],
+              [ "...", { "color": "#f7b6d2", "label": "Testbed API (Min)" } ],
+              [ "...", { "stat": "Maximum", "color": "#d62728", "label": "Testbed API (Max)" } ]
             ],
             "view": "timeSeries",
             "stacked": false,
