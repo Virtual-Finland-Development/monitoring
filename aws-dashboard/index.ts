@@ -103,7 +103,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             "view": "timeSeries",
             "stacked": false,
             "metrics": [
-              [ "AWS/Lambda", "Invocations", "FunctionName", codesetsLambdaId.split(":")[0], "Resource", codesetsLambdaId, { "id": "m1", "visible": true, "label": "US-East (N. Virginia)" } ],
+              [ "AWS/Lambda", "Invocations", "FunctionName", `us-east-1.${codesetsLambdaId.split(":")[0]}`, "Resource", `us-east-1.${codesetsLambdaId}`, { "id": "m1", "visible": true, "label": "US-East (N. Virginia)" } ],
               [ "...", { "region": "us-east-2", "id": "m2", "visible": true, "label": "US-East (Ohio)" } ],
               [ "...", { "region": "us-west-1", "id": "m3", "visible": true, "label": "US-West (N. California)" } ],
               [ "...", { "region": "us-west-2", "id": "m4", "visible": true, "label": "US-West (Oregon)" } ],
