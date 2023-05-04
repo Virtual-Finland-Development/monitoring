@@ -98,7 +98,32 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         new DashboardTitle().create('Codesets API', 0,17, DashboardTitleSize.MEDIUM),
         {
           "type": "metric",
-          "x": 7,
+          "x": 0,
+          "y": 18,
+          "width": 8,
+          "height": 8,
+          "properties": {
+            "view": "timeSeries",
+            "stacked": false,
+            "metrics": [
+              [ "AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", codesetsDistributionId ]
+            ],
+            "region": "us-east-1",
+            "title": "Requests (sum)",
+            "yAxis": {
+              "left": {
+                "showUnits": false
+              },
+              "right": {
+                "showUnits": false
+              }
+            },
+            "stat": "Sum"
+          }
+        },
+        {
+          "type": "metric",
+          "x": 8,
           "y": 18,
           "width": 8,
           "height": 8,
@@ -124,31 +149,6 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             "region": "us-east-1",
             "title": "Invocations (sum)",
             "period": 300,
-            "yAxis": {
-              "left": {
-                "showUnits": false
-              },
-              "right": {
-                "showUnits": false
-              }
-            },
-            "stat": "Sum"
-          }
-        },
-        {
-          "type": "metric",
-          "x": 0,
-          "y": 18,
-          "width": 8,
-          "height": 8,
-          "properties": {
-            "view": "timeSeries",
-            "stacked": false,
-            "metrics": [
-              [ "AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", codesetsDistributionId ]
-            ],
-            "region": "us-east-1",
-            "title": "Requests (sum)",
             "yAxis": {
               "left": {
                 "showUnits": false
