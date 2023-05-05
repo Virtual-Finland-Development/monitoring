@@ -35,6 +35,6 @@ jobs:
       - name: Install Pulumi CLI
         uses: pulumi/setup-pulumi@v2
       - run: npm ci
-      - run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
+      - run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/dev --create
       - run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
       - run: pulumi preview
