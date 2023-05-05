@@ -42,8 +42,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Install Pulumi CLI
         uses: pulumi/actions@v4
-      - run: npm ci
-      - run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
-      - run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
-      - run: pulumi preview
-      - run: pulumi up -y
+      - name: Install dependencies
+        run: npm ci
+      - name: Select Pulumi stack
+        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
+      - name: Set organization to config
+        run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
+      - name: Preview stack
+        run: pulumi preview
+      - name: Deploy stack
+        run: pulumi up -y
