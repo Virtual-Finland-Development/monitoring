@@ -41,7 +41,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Install Pulumi CLI
-        uses: pulumi/setup-pulumi@v2
+        uses: pulumi/actions@v4
       - run: npm ci
       - run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
       - run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
