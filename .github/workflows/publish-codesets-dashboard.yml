@@ -1,0 +1,49 @@
+name: Publish codesets dashboard to selected environment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - codesets-dashboard/**
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment where to deploy the stack (dev, staging)
+        type: environment
+        required: true
+
+env:
+  PULUMI_ORGANIZATION: virtualfinland
+  AWS_REGION: eu-north-1
+
+jobs:
+  preview-and-deploy:
+    name: Preview Pulumi stack
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+    defaults:
+      run:
+        working-directory: codesets-dashboard
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          cache: npm
+          cache-dependency-path: codesets-dashboard/package-lock.json
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-region: ${{ env.AWS_REGION }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Install Pulumi CLI
+        uses: pulumi/setup-pulumi@v2
+      - run: npm ci
+      - run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
+      - run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
+      - run: pulumi preview
+      - run: pulumi up -y
