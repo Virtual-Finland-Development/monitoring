@@ -1,0 +1,44 @@
+name: Preview and run tests on codesets dashboard
+
+on:
+  pull_request:
+    paths:
+      - codesets-dashboard/**
+
+env:
+  PULUMI_ORGANIZATION: virtualfinland
+  AWS_REGION: eu-north-1
+
+jobs:
+  preview-and-test:
+    name: Preview and run tests
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+    defaults:
+      run:
+        working-directory: codesets-dashboard
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          cache: npm
+          cache-dependency-path: codesets-dashboard/package-lock.json
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-region: ${{ env.AWS_REGION }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Select stack
+        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/dev --create
+      - name: Set organization to config
+        run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
+      - name: Preview Pulumi stack
+        run: pulumi preview
