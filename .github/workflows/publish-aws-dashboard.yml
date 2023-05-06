@@ -1,16 +1,15 @@
-name: Publish AWS dashboard to selected environment
+name: Publish AWS dashboard to dev
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: Environment where to deploy the stack (dev, staging)
-        type: environment
-        required: true
+  push:
+    branches:
+      - main
+    paths:
+      - aws-dashboard/**
 
 env:
   PULUMI_ORGANIZATION: virtualfinland
-  aws_region: eu-north-1
+  AWS_REGION: eu-north-1
 
 jobs:
   preview-pulumi:
@@ -19,38 +18,39 @@ jobs:
     environment: ${{ inputs.environment }}
     env:
       PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+    defaults:
+      run:
+        working-directory: aws-dashboard
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-node@v3
         with:
           node-version: '16.x'
+          cache: npm
+          cache-dependency-path: aws-dashboard/package-lock.json
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-region: ${{ env.aws_region }}
+          aws-region: ${{ env.AWS_REGION }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Install Pulumi CLI
-        uses: pulumi/setup-pulumi@v2
+        uses: pulumi/actions@v4
 
       - name: Install dependencies
-        working-directory: aws-dashboard
         run: npm ci
 
       - name: Select Pulumi stack
-        working-directory: aws-dashboard
         run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
 
       - name: Set organization in config
-        working-directory: aws-dashboard
         run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
 
       - name: Preview Pulumi stack
-        working-directory: aws-dashboard
         run: pulumi preview
 
       - name: Deploy dashboard to AWS
-        working-directory: aws-dashboard
         run: pulumi up -y
