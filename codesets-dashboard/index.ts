@@ -94,6 +94,37 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           stat: "Sum"
         }
+      },
+      {
+        height: 8,
+        width: 8,
+        y: 10,
+        x: 0,
+        type: "metric",
+        properties: {
+          view: "timeSeries",
+          stacked: false,
+          metrics: [
+            [ "AWS/CloudFront", "TotalErrorRate", "Region", "Global", "DistributionId", codesetsDistributionId ],
+            [ ".", "4xxErrorRate", ".", ".", ".", ".", { label: "Total4xxErrors" } ],
+            [ ".", "5xxErrorRate", ".", ".", ".", ".", { label: "Total5xxErrors" } ],
+            [ { expression: "(m4+m5+m6)/m7*100", label: "5xxErrorByLambdaEdge", id: "e1" } ],
+            [ "AWS/CloudFront", "LambdaExecutionError", "Region", "Global", "DistributionId", codesetsDistributionId, { id: "m4", stat: "Sum", visible: false } ],
+            [ ".", "LambdaValidationError", ".", ".", ".", ".", { id: "m5", stat: "Sum", visible: false } ],
+            [ ".", "LambdaLimitExceededError", ".", ".", ".", ".", { id: "m6", stat: "Sum", visible: false } ],
+            [ ".", "Requests", ".", ".", ".", ".", { id: "m7", stat: "Sum", visible: false } ]
+          ],
+          region: "us-east-1",
+          title: "Error rate (as a percentage of total requests)",
+          yAxis: {
+            left: {
+              showUnits: false
+            },
+            right: {
+              showUnits: false
+            }
+          }
+        }
       }
     ]
   }))
