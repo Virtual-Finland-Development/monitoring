@@ -54,4 +54,3 @@ jobs:
 
       - name: Deploy stack
         run: pulumi up -y
-

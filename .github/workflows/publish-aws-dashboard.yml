@@ -54,4 +54,3 @@ jobs:
 
       - name: Deploy dashboard to AWS
         run: pulumi up -y
-

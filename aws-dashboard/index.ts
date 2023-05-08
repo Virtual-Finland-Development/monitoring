@@ -163,3 +163,4 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
       ]
     }))
 });
+
