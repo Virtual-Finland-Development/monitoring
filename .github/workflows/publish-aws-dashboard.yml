@@ -15,7 +15,7 @@ jobs:
   preview-pulumi:
     name: Preview Pulumi
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: dev
     env:
       PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
     defaults:
@@ -44,7 +44,7 @@ jobs:
         run: npm ci
 
       - name: Select Pulumi stack
-        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
+        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/dev --create
 
       - name: Set organization in config
         run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
