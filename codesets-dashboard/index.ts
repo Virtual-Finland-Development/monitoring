@@ -100,3 +100,4 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
 });
 
 export const dashboardName = dashboard.dashboardName;
+
