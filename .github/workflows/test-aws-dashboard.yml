@@ -9,6 +9,10 @@ env:
   PULUMI_ORGANIZATION: virtualfinland
   AWS_REGION: eu-north-1
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   preview-and-test:
     name: Preview and run tests
@@ -24,16 +28,16 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: "16.x"
           cache: npm
           cache-dependency-path: aws-dashboard/package-lock.json
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: Virtual-Finland-Development/infrastructure/.github/actions/configure-aws-credentials@main
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          environment: dev
           aws-region: ${{ env.AWS_REGION }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          pulumi-access-token: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
       - name: Install Pulumi CLI
         uses: pulumi/actions@v4
