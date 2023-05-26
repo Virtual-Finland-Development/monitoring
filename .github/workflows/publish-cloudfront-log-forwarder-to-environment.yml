@@ -59,6 +59,8 @@ jobs:
           cache: npm
           cache-dependency-path: cloudfront-log-forwarder/package-lock.json
       - uses: pulumi/actions@v4
+        with:
+          work-dir: ./cloudfront-log-forwarder/
       - uses: actions/download-artifact@v3
         with:
           name: Function_Artifact
