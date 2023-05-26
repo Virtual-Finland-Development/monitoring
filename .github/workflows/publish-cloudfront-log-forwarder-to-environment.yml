@@ -52,6 +52,7 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls -R
+        working-directory: ./
 
       - name: Download artifact
         uses: actions/download-artifact@v3
