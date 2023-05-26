@@ -52,7 +52,6 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls -R
-        working-directory: cloudfront-log-forwarder/release/
 
       - name: Download artifact
         uses: actions/download-artifact@v3
