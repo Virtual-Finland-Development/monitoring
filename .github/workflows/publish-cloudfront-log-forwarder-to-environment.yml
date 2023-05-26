@@ -33,6 +33,10 @@ jobs:
           name: Function_Artifact
           path: cloudfront-log-forwarder/src/bin/Release/net6.0/src.zip
           retention-days: 1
+          
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: cloudfront-log-forwarder/src/bin/Release/net6.0/
   
   deploy:
     name: Deploy function to AWS ${{ inputs.environment }} environment
