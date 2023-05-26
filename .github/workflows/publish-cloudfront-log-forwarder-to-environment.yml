@@ -7,6 +7,13 @@ on:
         description: Environment where to deploy the stack (dev, staging)
         type: environment
         required: true
+        
+env:
+  PULUMI_ORGANIZATION: virtualfinland
+        
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   
@@ -57,7 +64,7 @@ jobs:
         uses: pulumi/actions@v4
 
       - name: Select Pulumi stack
-        run: pulumi stack select virtualfinland/${{ inputs.environment }} --create
+        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
 
       - name: Set Pulumi artifact path
         run: pulumi config set applicationArtifactPath src.zip
