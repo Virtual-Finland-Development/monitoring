@@ -88,31 +88,29 @@ public class Functions
                 var metadataResponse = S3Client.GetObjectMetadataAsync(s3Event.Bucket.Name, s3Event.Object.Key);
 
                 context.Logger.LogDebug($"S3 object content type is: {metadataResponse.Result.Headers.ContentType}");
-
-                GetObjectResponse? response = null;
+                
                 try
                 {
                     context.Logger.LogDebug("Trying to load gzip file");
 
-                    response = S3Client.GetObjectAsync(s3Event.Bucket.Name, s3Event.Object.Key).Result;
-
+                    var response = S3Client.GetObjectAsync(s3Event.Bucket.Name, s3Event.Object.Key).Result;
+                    
                     context.Logger.LogDebug($"response status code is: {response.HttpStatusCode}");
+                    context.Logger.LogDebug($"response stream length is {response.ResponseStream.Length}");
+                    context.Logger.LogDebug("Start processing file");
+
+                    var logData = FileStreamProcessor.Process(response.ResponseStream);
+
+                    context.Logger.LogDebug(
+                        $"File processing completed. Number of processed log lines is: {logData.Count}");
+                    context.Logger.LogDebug("Start processing logs");
+
+                    _logService.ProcessLogs(logData);
                 }
                 catch (Exception e)
                 {
                     context.Logger.LogError(e.Message);
                 }
-
-                context.Logger.LogDebug($"response stream length is {response.ResponseStream.Length}");
-                context.Logger.LogDebug("Start processing file");
-
-                var logData = FileStreamProcessor.Process(response.ResponseStream);
-
-                context.Logger.LogDebug(
-                    $"File processing completed. Number of processed log lines is: {logData.Count}");
-                context.Logger.LogDebug("Start processing logs");
-
-                _logService.ProcessLogs(logData);
             }
             catch (Exception e)
             {
