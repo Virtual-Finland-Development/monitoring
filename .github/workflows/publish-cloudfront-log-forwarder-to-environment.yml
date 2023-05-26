@@ -52,7 +52,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: Function_Artifact
-          path: ./cloudfront-log-forwarder
+          path: cloudfront-log-forwarder/release
+          
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: cloudfront-log-forwarder/release
 
       - name: Select Pulumi stack
         run: pulumi stack select ${{ secrets.PULUMI_ORGANIZATION }}/{{ inputs.environment }}
