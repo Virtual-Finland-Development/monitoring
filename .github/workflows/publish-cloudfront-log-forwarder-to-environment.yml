@@ -57,7 +57,7 @@ jobs:
         uses: pulumi/actions@v4
 
       - name: Select Pulumi stack
-        run: pulumi stack select ${{ secrets.PULUMI_ORGANIZATION }}/{{ inputs.environment }} --create
+        run: pulumi stack select virtualfinland/${{ inputs.environment }} --create
 
       - name: Set Pulumi artifact path
         run: pulumi config set applicationArtifactPath src.zip
