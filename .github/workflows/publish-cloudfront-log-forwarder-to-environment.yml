@@ -58,7 +58,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: Function_Artifact
-          path: cloudfront-log-forwarder/release
+          path: ./cloudfront-log-forwarder/
 
       - name: Install Pulumi CLI
         uses: pulumi/actions@v4
