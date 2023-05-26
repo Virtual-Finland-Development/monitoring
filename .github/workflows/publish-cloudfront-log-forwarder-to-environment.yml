@@ -28,7 +28,7 @@ jobs:
         working-directory: ./cloudfront-log-forwarder/src
 
       - name: Upload artifact
-        uses: action/upload-artifact@v3
+        uses: actions/upload-artifact@v3
         with:
           name: Function_Artifact
           path: cloudfront-log-forwarder/src/bin/Release/net6.0/src.zip
