@@ -31,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Function_Artifact
-          path: cloudfront-log-forwarder/src/bin/Release/net6.0/src.zip
+          path: cloudfront-log-forwarder/src/bin/Release/net6.0/publish/
           retention-days: 1
           
       - name: Display structure of downloaded files
@@ -49,18 +49,19 @@ jobs:
         working-directory: cloudfront-log-forwarder
     steps:
       - uses: actions/checkout@v3
-      - name: Install Pulumi CLI
-        uses: pulumi/actions@v4
-        
+
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
           name: Function_Artifact
           path: cloudfront-log-forwarder/release
-          
+
       - name: Display structure of downloaded files
         run: ls -R
-        working-directory: cloudfront-log-forwarder/release
+        working-directory: cloudfront-log-forwarder/release/
+
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v4
 
       - name: Select Pulumi stack
         run: pulumi stack select ${{ secrets.PULUMI_ORGANIZATION }}/{{ inputs.environment }}
