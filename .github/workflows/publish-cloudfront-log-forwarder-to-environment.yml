@@ -53,15 +53,16 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v3
-
-      - name: Download artifact
-        uses: actions/download-artifact@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+          cache: npm
+          cache-dependency-path: cloudfront-log-forwarder/package-lock.json
+      - uses: pulumi/actions@v4
+      - uses: actions/download-artifact@v3
         with:
           name: Function_Artifact
           path: ./cloudfront-log-forwarder/
-
-      - name: Install Pulumi CLI
-        uses: pulumi/actions@v4
 
       - name: Select Pulumi stack
         run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
