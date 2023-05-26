@@ -47,6 +47,7 @@ jobs:
     defaults:
       run:
         working-directory: cloudfront-log-forwarder
+    needs: build
     steps:
       - uses: actions/checkout@v3
 
