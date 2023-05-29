@@ -69,6 +69,9 @@ jobs:
           name: Function_Artifact
           path: ./cloudfront-log-forwarder/
 
+      - name: List directory contents
+        run: ls
+
       - name: Select Pulumi stack
         run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
 
