@@ -7,7 +7,7 @@ import {getRoleForLambda} from "./getRoleForLambda";
 const stack = pulumi.getStack();
 const projectName = pulumi.getProject();
 const config = new pulumi.Config();
-let artifactPath = config.get('artifactPath') ?? 'src/bin/Release/net6.0/src.zip'
+let artifactPath = config.get('applicationArtifactPath') ?? 'src/bin/Release/net6.0/src.zip'
 
 let tags = {
     'vfd:stack': stack,
