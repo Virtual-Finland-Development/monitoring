@@ -26,37 +26,37 @@ export function getRoleForLambda(projectName: string, stack: string, tags: any):
     new aws.iam.RolePolicy(`${projectName}-allowLambdaAccessToS3AndCloudWatch-${stack}`, {
         role: role,
         policy: JSON.stringify({
-            Version: '2012-10-17',
-            Statement: [
+            "Version": "2012-10-17",
+            "Statement": [
                 {
-                    Effect: 'Allow',
-                    Principals: [
+                    "Effect": "Allow",
+                    "Principals": [
                         {
-                            type: 'Service',
-                            identifiers: ['s3.amazonaws.com']
+                            "type": "Service",
+                            "identifiers": ["s3.amazonaws.com"]
                         }
                     ],
-                    Actions: [
-                        's3:ListObject',
-                        's3:GetObject'
+                    "Actions": [
+                        "s3:ListObject",
+                        "s3:GetObject"
                     ]
                 },
                 {
-                    Effect: 'Allow',
-                    Principals: [
+                    "Effect": "Allow",
+                    "Principals": [
                         {
-                            type: 'Service',
-                            identifiers: ['cloudwatch.amazonaws.com']
+                            "type": "Service",
+                            "identifiers": ["cloudwatch.amazonaws.com"]
                         }
                     ],
-                    Actions: [
-                        'logs:CreateLogGroup',
-                        'logs:CreateLogStream',
-                        'logs:DescribeLogGroups',
-                        'logs:DescribeLogStreams',
-                        'logs:PutLogEvents',
-                        'logs:GetLogEvents',
-                        'logs:FilterLogEvents'
+                    "Actions": [
+                        "logs:CreateLogGroup",
+                        "logs:CreateLogStream",
+                        "logs:DescribeLogGroups",
+                        "logs:DescribeLogStreams",
+                        "logs:PutLogEvents",
+                        "logs:GetLogEvents",
+                        "logs:FilterLogEvents"
                     ]
                 }
             ]
