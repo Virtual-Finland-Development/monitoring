@@ -23,33 +23,21 @@ export function getRoleForLambda(projectName: string, stack: string, tags: any):
         policyArn: AWSLambdaBasicExecutionRole
     });
 
-    new aws.iam.RolePolicy(`${projectName}-allowLambdaAccessToS3AndCloudWatch-${stack}`, {
+    let policy = new aws.iam.RolePolicy(`${projectName}-allowLambdaAccessToS3AndCloudWatch-${stack}`, {
         role: role,
         policy: JSON.stringify({
             "Version": "2012-10-17",
             "Statement": [
                 {
                     "Effect": "Allow",
-                    "Principals": [
-                        {
-                            "type": "Service",
-                            "identifiers": ["s3.amazonaws.com"]
-                        }
-                    ],
-                    "Actions": [
-                        "s3:ListObject",
+                    "Action": [
                         "s3:GetObject"
-                    ]
+                    ],
+                    "Resource": "*"
                 },
                 {
                     "Effect": "Allow",
-                    "Principals": [
-                        {
-                            "type": "Service",
-                            "identifiers": ["cloudwatch.amazonaws.com"]
-                        }
-                    ],
-                    "Actions": [
+                    "Action": [
                         "logs:CreateLogGroup",
                         "logs:CreateLogStream",
                         "logs:DescribeLogGroups",
@@ -57,11 +45,12 @@ export function getRoleForLambda(projectName: string, stack: string, tags: any):
                         "logs:PutLogEvents",
                         "logs:GetLogEvents",
                         "logs:FilterLogEvents"
-                    ]
+                    ],
+                    "Resource": ["*"]
                 }
             ]
         })
     })
-
+    
     return role;
 }
