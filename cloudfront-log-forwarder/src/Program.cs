@@ -1,8 +1,8 @@
 ﻿using Amazon.CloudWatchLogs;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
+using Amazon.Lambda.Serialization.SystemTextJson;
 using Amazon.S3;
-using Amazon.S3.Model;
 using S3LogFileHandler;
 using S3LogFileHandler.services;
 
