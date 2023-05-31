@@ -6,6 +6,9 @@ using Amazon.S3.Model;
 using S3LogFileHandler;
 using S3LogFileHandler.services;
 
+// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
+[assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
+
 namespace CloudFrontLogForwarder;
 
 public class Functions
