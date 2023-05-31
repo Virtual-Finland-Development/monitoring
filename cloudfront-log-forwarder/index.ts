@@ -53,7 +53,7 @@ new aws.s3.BucketNotification(`${projectName}-notification-${stack}`, {
     lambdaFunctions: [{
         lambdaFunctionArn: lambdaFunction.arn,
         events: ['s3:ObjectCreated:Put'],
-        filterSuffix: '.gzip'
+        filterSuffix: '.gz'
     }]
 }, {
     dependsOn: [lambdaBucketPermission, codesetsStackReference]
