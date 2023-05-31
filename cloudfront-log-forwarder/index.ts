@@ -17,6 +17,11 @@ let tags = {
 
 let iamForLambda = getRoleForLambda(projectName, stack, tags);
 
+// Create CloudWatch log group where logs will be saved
+const logGroup = new aws.cloudwatch.LogGroup(`/aws/cloudfront/${projectName}-${stack}`, {
+    tags: tags
+})
+
 // Create Lambda function for forwarding logs 
 const lambdaFunction = new aws.lambda.Function(`${projectName}-${stack}`, {
     code: new pulumi.asset.FileArchive(artifactPath),
@@ -25,7 +30,7 @@ const lambdaFunction = new aws.lambda.Function(`${projectName}-${stack}`, {
     runtime: 'dotnet6',
     environment: {
         variables: {
-            logGroupName: `/aws/cloudfront/${projectName}-${stack}`,
+            logGroupName: logGroup.name,
             logStreamName: `${projectName}-log-stream-${stack}`
         }
     },
@@ -58,11 +63,6 @@ new aws.s3.BucketNotification(`${projectName}-notification-${stack}`, {
 }, {
     dependsOn: [lambdaBucketPermission, codesetsStackReference]
 });
-
-// Create CloudWatch log group where logs will be saved
-const logGroup = new aws.cloudwatch.LogGroup(`/aws/cloudfront/${projectName}-${stack}`, {
-    tags: tags
-})
 
 // noinspection JSUnusedGlobalSymbols
 export const logGroupName = logGroup.name;
