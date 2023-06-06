@@ -30,6 +30,7 @@ public static class FileStreamProcessor
         var result = ProcessStream(uncompressedStream);
 
         MergeDateAndTimeToTimestamp(result);
+        RemoveIpUserAgentFromLogs(result);
 
         if (printJson) Console.WriteLine($"{JsonSerializer.Serialize(result)}");
 
@@ -44,6 +45,7 @@ public static class FileStreamProcessor
         var result = ProcessStream(simpleFile);
 
         MergeDateAndTimeToTimestamp(result);
+        RemoveIpUserAgentFromLogs(result);
 
         if (printJson) Console.WriteLine($"{JsonSerializer.Serialize(result)}");
 
@@ -103,6 +105,15 @@ public static class FileStreamProcessor
             line.Remove("time");
 
             line.Add("timestamp", timestamp);
+        }
+    }
+
+    private static void RemoveIpUserAgentFromLogs(List<Dictionary<string, string>> lines)
+    {
+        foreach (var line in lines)
+        {
+            line.Remove("c-ip");
+            line.Remove("cs(User-Agent)");
         }
     }
 
