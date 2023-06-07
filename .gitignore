@@ -2,3 +2,8 @@
 *obj/
 *node_modules/
 .idea
+/cloudfront-log-forwarder/bin/
+/cloudfront-log-forwarder/obj/
+/cloudfront-log-forwarder/node_modules/
+/cloudfront-log-forwarder/src/bin/
+/cloudfront-log-forwarder/src/obj/

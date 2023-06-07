@@ -1,0 +1,3 @@
+name: cloudfront-log-forwarder
+runtime: nodejs
+description: Setup for delivering Cloud Front logs from S3 to CloudWatch

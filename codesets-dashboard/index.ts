@@ -10,11 +10,14 @@ const codesetsStackReference = new pulumi.StackReference(`${org}/codesets/${stac
 const codesetsLambdaId = codesetsStackReference.getOutput('lambdaId').apply(v => v.toString());
 const codesetsDistributionId = codesetsStackReference.getOutput('cloudFrontDistributionId').apply(v => v.toString());
 
-let resources = pulumi.all([codesetsLambdaId, codesetsDistributionId]);
+const cloudfrontLogForwarderStackReference = new pulumi.StackReference(`${org}/cloudfront-log-forwarder/${stack}`);
+const forwarderLogGroupName = cloudfrontLogForwarderStackReference.getOutput('logGroupName').apply(v => v.toString());
+
+let resources = pulumi.all([codesetsLambdaId, codesetsDistributionId, forwarderLogGroupName]);
 
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
-  dashboardBody: resources.apply(([codesetsLambdaId, codesetsDistributionId]) => JSON.stringify({
+  dashboardBody: resources.apply(([codesetsLambdaId, codesetsDistributionId, forwarderLogGroupName]) => JSON.stringify({
     widgets: [
       {
         type: 'text',
@@ -124,6 +127,32 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               showUnits: false
             }
           }
+        }
+      },
+      {
+        height: 6,
+        width: 8,
+        y: 18,
+        x: 0,
+        type: "log",
+        properties: {
+          query: "SOURCE '" + forwarderLogGroupName + "' | #fields `x-edge-detailed-result-type` | stats count() by `x-edge-detailed-result-type`\nfields `x-edge-location` as x_edge_location | stats count() by x_edge_location ",
+          region: "eu-north-1",
+          title: "CloudFront distribution edge locations hit",
+          view: "pie"
+        }
+      },
+      {
+        height: 6,
+        width: 8,
+        y: 18,
+        x: 8,
+        type: "log",
+        properties: {
+          query: "SOURCE '" + forwarderLogGroupName + "' | fields `x-edge-detailed-result-type` | stats count() by `x-edge-detailed-result-type`",
+          region: "eu-north-1",
+          title: "CloudFront distribution hit results",
+          view: "pie"
         }
       }
     ]
