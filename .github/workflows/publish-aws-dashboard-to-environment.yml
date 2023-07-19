@@ -1,6 +1,12 @@
 name: Publish AWS dashboard to selected environment
 
 on:
+  workflow_call:
+    inputs:
+      environment:
+        description: Environment where to deploy the stack (dev, staging)
+        type: string
+        required: true
   workflow_dispatch:
     inputs:
       environment:
