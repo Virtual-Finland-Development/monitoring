@@ -81,8 +81,6 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               [ "AWS/Lambda", "Duration", "FunctionName", usersApiLambdaId, { "id": "m1", "region": region, "color": "#3e82e5", "label": "Users API (Avg)", "stat": "Average" } ],
               [ "...", { "id": "m2", "region": region, "color": "#8cc8f3", "label": "Users API (Min)" } ],
               [ "...", { "id": "m3", "region": region, "color": "#38549a", "label": "Users API (Max)", "stat": "Maximum" } ],
-              [ "...", { "color": "#f7b6d2", "label": "Testbed API (Min)" } ],
-              [ "...", { "stat": "Maximum", "color": "#d62728", "label": "Testbed API (Max)" } ]
             ],
             "view": "timeSeries",
             "stacked": false,
