@@ -6,7 +6,7 @@ const stack = pulumi.getStack();
 const projectName = pulumi.getProject();
 const config = new pulumi.Config();
 const org: string = config.require('org');
-const region = config.require('aws:region');
+const region = new pulumi.Config('aws').require('region');
 
 // Stack references
 const usersApiStackReference = new pulumi.StackReference(`${org}/users-api/${stack}`);
