@@ -16,8 +16,8 @@ permissions:
   contents: read
 
 jobs:
-  preview-pulumi:
-    name: Preview Pulumi
+  deployment:
+    name: Deploy with Pulumi
     runs-on: ubuntu-latest
     environment: dev
     env:
