@@ -1,3 +1,6 @@
 name: codesets-dashboard
 runtime: nodejs
 description: A minimal AWS TypeScript Pulumi program
+config:
+  aws:region: eu-north-1
+  codesets-dashboard:org: virtualfinland

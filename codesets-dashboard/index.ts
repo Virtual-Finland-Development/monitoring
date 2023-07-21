@@ -1,10 +1,11 @@
-import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import * as pulumi from "@pulumi/pulumi";
 
 const stack = pulumi.getStack();
 const projectName = pulumi.getProject();
 const config = new pulumi.Config();
 const org: string = config.require('org');
+const region = config.require('aws:region');
 
 const codesetsStackReference = new pulumi.StackReference(`${org}/codesets/${stack}`);
 const codesetsLambdaId = codesetsStackReference.getOutput('lambdaId').apply(v => v.toString());
@@ -137,7 +138,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         type: "log",
         properties: {
           query: "SOURCE '" + forwarderLogGroupName + "' | #fields `x-edge-detailed-result-type` | stats count() by `x-edge-detailed-result-type`\nfields `x-edge-location` as x_edge_location | stats count() by x_edge_location ",
-          region: "eu-north-1",
+          region: region,
           title: "CloudFront distribution edge locations hit",
           view: "pie"
         }
@@ -150,7 +151,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         type: "log",
         properties: {
           query: "SOURCE '" + forwarderLogGroupName + "' | fields `x-edge-detailed-result-type` | stats count() by `x-edge-detailed-result-type`",
-          region: "eu-north-1",
+          region: region,
           title: "CloudFront distribution hit results",
           view: "pie"
         }
