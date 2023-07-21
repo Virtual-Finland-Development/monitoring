@@ -9,7 +9,7 @@ const org: string = config.require('org');
 
 // Stack references
 const usersApiStackReference = new pulumi.StackReference(`${org}/users-api/${stack}`);
-const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput('DbIdentifier').apply(v => v.toString());
+const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput('DBIdentifier').apply(v => v.toString());
 const usersApiLambdaId = usersApiStackReference.getOutput('LambdaId').apply(v => v.toString());
 
 const testbedApiStackReference = new pulumi.StackReference(`${org}/testbed-api/${stack}`);
