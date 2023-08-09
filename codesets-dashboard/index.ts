@@ -10,7 +10,9 @@ const region = new pulumi.Config('aws').require('region');
 const codesetsStackReference = new pulumi.StackReference(`${org}/codesets/${stack}`);
 const codesetsLambdaId = codesetsStackReference.getOutput('lambdaId').apply(v => v.toString());
 const codesetsDistributionId = codesetsStackReference.getOutput('cloudFrontDistributionId').apply(v => v.toString());
-const escoApiLambdaId = codesetsStackReference.getOutput('escoApiLambdaId').apply(v => v.toString());
+
+const escoApiStackReference = new pulumi.StackReference(`${org}/escoApi/${stack}`);
+const escoApiLambdaId = escoApiStackReference.getOutput('escoApiLambdaId').apply(v => v.toString());
 
 const cloudfrontLogForwarderStackReference = new pulumi.StackReference(`${org}/cloudfront-log-forwarder/${stack}`);
 const forwarderLogGroupName = cloudfrontLogForwarderStackReference.getOutput('logGroupName').apply(v => v.toString());
