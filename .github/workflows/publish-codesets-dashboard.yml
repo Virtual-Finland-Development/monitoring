@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   preview-and-deploy:
-    name: Preview Pulumi stack
+    name: Deploy with Pulumi
     runs-on: ubuntu-latest
     environment: dev
     env:
