@@ -13,22 +13,16 @@ const usersApiStackReference = new pulumi.StackReference(`${org}/users-api/${sta
 const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput('DBIdentifier').apply(v => v.toString());
 const usersApiLambdaId = usersApiStackReference.getOutput('LambdaId').apply(v => v.toString());
 
-const codesetsStackReference = new pulumi.StackReference(`${org}/codesets/${stack}`);
-const codesetsLambdaId = codesetsStackReference.getOutput('lambdaId').apply(v => v.toString());
-const codesetsDistributionId = codesetsStackReference.getOutput('cloudFrontDistributionId').apply(v => v.toString());
-
 // Combine all resources to single output that we can use below on the dashboard
-let resources = pulumi.all([
+const resources = pulumi.all([
   usersApiDbInstanceIdentifier,
   usersApiLambdaId,
-  codesetsLambdaId,
-  codesetsDistributionId
 ]);
 
 // noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
-  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier, usersApiLambdaId, codesetsLambdaId, codesetsDistributionId]) =>
+  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier, usersApiLambdaId]) =>
     JSON.stringify({
       widgets: [
         new DashboardTitle().withBody("Useful graphs and metrics for monitoring Virtual Finland services").create("Virtual Finland Development dashboard", 0, 0),
