@@ -175,13 +175,16 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         width: 8,
         y: 26,
         x: 0,
-        type: 'log',
+        type: 'metric',
         properties: {
-          query: `SOURCE '/aws/lambda/${escoApiLambdaId}' | fields @timestamp, @@x, StatusCode, Elapsed\n| filter StatusCode = 500\n| sort @timestamp desc\n| limit 20`,
-          region: region,
+          metrics: [
+            [ "AWS/Lambda", "Invocations", "FunctionName", escoApiLambdaId, { "id": "m1", "region": region, "color": "#3e82e5", "label": "ESCO API (Sum)" } ],
+          ],
+          view: 'timeSeries',
           stacked: false,
-          title: 'ESCO API errors',
-          view: 'table'
+          region: region,
+          stat: 'Sum',
+          period: 300,
         }
       },
       {
@@ -202,7 +205,35 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           stat: 'Minimum',
           period: 300
         }
-      }
+      },
+      {
+        height: 6,
+        width: 8,
+        y: 32,
+        x: 0,
+        type: 'log',
+        properties: {
+          query: `SOURCE '/aws/lambda/${escoApiLambdaId}' | fields @timestamp, request.path\n| filter response.statusCode = 200\n| sort @timestamp desc\n| limit 20`,
+          region: region,
+          stacked: false,
+          title: 'ESCO API success logs',
+          view: 'table'
+        }
+      },
+      {
+        height: 6,
+        width: 8,
+        y: 32,
+        x: 8,
+        type: 'log',
+        properties: {
+          query: `SOURCE '/aws/lambda/${escoApiLambdaId}' | fields @timestamp, request.path, response.statusCode, errors.0.0.message\n| filter response.statusCode > 0 and response.statusCode != 200\n| sort @timestamp desc\n| limit 20`,
+          region: region,
+          stacked: false,
+          title: 'ESCO API error logs',
+          view: 'table'
+        }
+      },
     ]
   }))
 });
