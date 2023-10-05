@@ -66,7 +66,7 @@ export function createErrorSubLambdaFunction(
     environment: {
       variables: {
         STAGE: setup.stage,
-        PRIMARY_AWS_REGION: pulumi.interpolate`${setup.regions.resourcesRegion.name}`,
+        PRIMARY_AWS_REGION: new pulumi.Config("aws").require("region"),
         SNS_TOPIC_EMAIL_ARN: snsTopicForEmail.arn,
         SNS_TOPIC_CHATBOT_ARN: snsTopicForChatbot.arn,
       },

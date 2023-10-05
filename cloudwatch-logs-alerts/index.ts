@@ -1,4 +1,3 @@
-import * as pulumi from "@pulumi/pulumi";
 import { getSetup } from "./utils/Setup";
 import { createChatbotSlackConfig } from "./resources/Chatbot";
 import { createErrorSubLambdaFunction } from "./resources/ErrorSubLambdaFunction";
