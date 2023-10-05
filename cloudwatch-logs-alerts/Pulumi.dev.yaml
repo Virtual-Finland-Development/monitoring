@@ -1,0 +1,5 @@
+config:
+  cloudwatch-logs-alerts:slackChannelId:
+    secure: AAABABkc5AIQLNY6yVJC+bR8kOff4Yo5qWKkgMT7h989JuOmCIghp/h2Hg==
+  cloudwatch-logs-alerts:slackWorkspaceId:
+    secure: AAABAO7012UQ9olk4tYVxK+NLjp0LHynCPdZCHesOH8gYKMirSgLNRYYXg==
