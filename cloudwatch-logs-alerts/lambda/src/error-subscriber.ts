@@ -1,5 +1,6 @@
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import { CloudWatchLogsEvent } from "aws-lambda";
+import { log } from "node:console";
 import { gunzipSync } from "node:zlib";
 
 const stage = process.env.STAGE;
@@ -20,6 +21,7 @@ function getLogEventsUrl(
 // so we parse it from the subscription filter name as the format is in *our* control and does include the region in the name
 function resolveEventRegion(subscriptionFilters: string[] | undefined): string {
   let region = primaryRegion; // default to primary region
+
   if (subscriptionFilters?.length) {
     // Match the region from the subscription filter name, which is defined in the pulumi cloudwatch related definitions
     // Eg. codesets-CloudWatchLogSubFilter-eu-central-1-dev-c1c1724 -> eu-central-1
@@ -66,49 +68,46 @@ function transformTextToMarkdown(text: string) {
 }
 
 const snsClient = new SNSClient({ region: primaryRegion });
+// to prevent spamming per source, we keep track of the sources we're handling and clear the flag after a timeout, in the form of { sourceLogGroupName: true, ... }
 const isHandlingTimeout = 1000 * 60; // 1 minute
-let isHandlingEvent = false;
+const handlingSource: Record<string, boolean> = {};
 
 // Logs that are sent to a receiving service through a subscription filter are base64 encoded and compressed with the gzip format.
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#LambdaFunctionExample
 export const handler = async (event: CloudWatchLogsEvent) => {
   console.log("[Received Event]:", event);
 
-  if (!isHandlingEvent) {
-    // prevent consecutive executions (at least in theory)
-    isHandlingEvent = true;
+  let uniqueServiceKey = "";
 
-    try {
-      if (
-        !stage ||
-        !primaryRegion ||
-        !snsTopicEmailArn ||
-        !snsTopicChatbotArn
-      ) {
-        throw new Error("Required environment variables are missing.");
-      }
+  try {
+    if (!stage || !primaryRegion || !snsTopicEmailArn || !snsTopicChatbotArn) {
+      throw new Error("Required environment variables are missing.");
+    }
 
-      const buffer = Buffer.from(event.awslogs.data, "base64");
-      const decompressedData = gunzipSync(buffer).toString("utf-8");
-      const parsed = JSON.parse(decompressedData);
+    const buffer = Buffer.from(event.awslogs.data, "base64");
+    const decompressedData = gunzipSync(buffer).toString("utf-8");
+    const parsed = JSON.parse(decompressedData);
+    const logGroup = parsed?.logGroup;
+    const logStream = parsed?.logStream;
+
+    if (typeof logGroup !== "string" || typeof logStream !== "string") {
+      throw new Error("Could not parse log group or log stream.");
+    }
+
+    if (!handlingSource[logGroup]) {
+      uniqueServiceKey = logGroup;
+      handlingSource[uniqueServiceKey] = true;
+
       console.log("[Parsed]:", parsed);
       const message =
         parsed?.logEvents[0]?.message ?? "Message could not be parsed.";
       const messageString = JSON.stringify(message, null, 2);
       console.log("[Message]:", messageString);
 
-      const logGroup = parsed?.logGroup;
-      const logStream = parsed?.logStream;
-
       const codesetsDashboardUrl = getCodesetsDashboardUrl();
-      let logEventsUrl = undefined;
-      let emailMessage = `${messageString}\n\nView dashboard: ${codesetsDashboardUrl}`;
-
-      if (logGroup && logStream) {
-        const logGroupRegion = resolveEventRegion(parsed?.subscriptionFilters);
-        logEventsUrl = getLogEventsUrl(logGroupRegion, logGroup, logStream);
-        emailMessage = `${emailMessage}\n\nView in AWS console: ${logEventsUrl}}`;
-      }
+      const logGroupRegion = resolveEventRegion(parsed?.subscriptionFilters);
+      const logEventsUrl = getLogEventsUrl(logGroupRegion, logGroup, logStream);
+      const emailMessage = `${messageString}\n\nView dashboard: ${codesetsDashboardUrl}\n\nView in AWS console: ${logEventsUrl}}`;
 
       // for chatbot / slack integration, custom format needed
       // https://docs.aws.amazon.com/chatbot/latest/adminguide/custom-notifs.html
@@ -120,7 +119,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
           description: transformTextToMarkdown(messageString),
           nextSteps: [
             // https://api.slack.com/reference/surfaces/formatting#links-in-retrieved-messages
-            ...(logEventsUrl ? [`<${logEventsUrl}|View in AWS console>`] : []),
+            `<${logEventsUrl}|View in AWS console>`,
             `<${codesetsDashboardUrl}|View dashboard>`,
           ],
         },
@@ -136,7 +135,10 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       ]);
 
       // clear flag after timeout
-      setTimeout(() => (isHandlingEvent = false), isHandlingTimeout);
+      setTimeout(
+        () => delete handlingSource[uniqueServiceKey],
+        isHandlingTimeout
+      );
 
       return {
         statusCode: 200,
@@ -144,14 +146,16 @@ export const handler = async (event: CloudWatchLogsEvent) => {
           message: "Codesets error passed to SNS topics",
         }),
       };
-    } catch (err) {
-      isHandlingEvent = false;
-      console.error("Error:", err);
-
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "Internal Server Error" }),
-      };
+    } else {
+      console.log(`Already handling error for log group: ${logGroup}`);
     }
+  } catch (err) {
+    delete handlingSource[uniqueServiceKey];
+    console.error("Error:", err);
+
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Internal Server Error" }),
+    };
   }
 };
