@@ -1,6 +1,5 @@
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 import { CloudWatchLogsEvent } from "aws-lambda";
-import { log } from "node:console";
 import { gunzipSync } from "node:zlib";
 
 const stage = process.env.STAGE;
@@ -30,6 +29,7 @@ function resolveEventRegion(subscriptionFilters: string[] | undefined): string {
     );
     const subscriptionFilter = subscriptionFilters[0];
     const match = subscriptionFilter.match(regexp);
+
     if (match?.length) {
       region = match[1];
     }
@@ -43,11 +43,11 @@ function getCodesetsDashboardUrl() {
   return `https://${primaryRegion}.console.aws.amazon.com/cloudwatch/home?region=${primaryRegion}#dashboards/dashboard/codesets-dashboard-${stage}`;
 }
 
-function publishSnsMessage(topicArn: string, message: string) {
+function publishSnsMessage(topicArn: string, subject: string, message: string) {
   return snsClient.send(
     new PublishCommand({
       TopicArn: topicArn,
-      Subject: "Codesets Error!",
+      Subject: `${subject} Error!`,
       Message: message,
     })
   );
@@ -65,6 +65,16 @@ function transformTextToMarkdown(text: string) {
   // The first and last quote are removed
   text = text.replace(/^"/, "").replace(/"$/, "");
   return text;
+}
+
+function getSubject(logGroup: string) {
+  if (logGroup.includes("codesets")) {
+    return "Codesets";
+  } else if (logGroup.includes("escoApi")) {
+    return "Esco API";
+  } else {
+    return "Unknown";
+  }
 }
 
 const snsClient = new SNSClient({ region: primaryRegion });
@@ -108,6 +118,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       const logGroupRegion = resolveEventRegion(parsed?.subscriptionFilters);
       const logEventsUrl = getLogEventsUrl(logGroupRegion, logGroup, logStream);
       const emailMessage = `${messageString}\n\nView dashboard: ${codesetsDashboardUrl}\n\nView in AWS console: ${logEventsUrl}}`;
+      const subject = getSubject(logGroup);
 
       // for chatbot / slack integration, custom format needed
       // https://docs.aws.amazon.com/chatbot/latest/adminguide/custom-notifs.html
@@ -115,7 +126,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
         version: "1.0",
         source: "custom",
         content: {
-          title: ":boom: Codesets Error! :boom:",
+          title: `:boom: ${subject} Error! :boom:`,
           description: transformTextToMarkdown(messageString),
           nextSteps: [
             // https://api.slack.com/reference/surfaces/formatting#links-in-retrieved-messages
@@ -127,9 +138,10 @@ export const handler = async (event: CloudWatchLogsEvent) => {
 
       // publish to sns topics
       await Promise.all([
-        publishSnsMessage(snsTopicEmailArn, emailMessage),
+        publishSnsMessage(snsTopicEmailArn, subject, emailMessage),
         publishSnsMessage(
           snsTopicChatbotArn,
+          subject,
           JSON.stringify(chatbotCustomFormat)
         ),
       ]);
@@ -143,7 +155,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       return {
         statusCode: 200,
         body: JSON.stringify({
-          message: "Codesets error passed to SNS topics",
+          message: `${subject} error passed to SNS topics`,
         }),
       };
     } else {
