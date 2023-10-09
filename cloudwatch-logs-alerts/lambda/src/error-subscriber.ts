@@ -68,8 +68,10 @@ function transformTextToMarkdown(text: string) {
 }
 
 function getSubject(logGroup: string) {
-  if (logGroup.includes("codesets")) {
+  if (logGroup.includes("codesets-LambdaAtEdge")) {
     return "Codesets";
+  } else if (logGroup.includes("codesets-CacheUpdaterFunction")) {
+    return "Codesets cache";
   } else if (logGroup.includes("escoApi")) {
     return "Esco API";
   } else {
