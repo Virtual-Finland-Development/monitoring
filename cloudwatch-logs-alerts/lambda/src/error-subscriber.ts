@@ -23,9 +23,9 @@ function resolveEventRegion(subscriptionFilters: string[] | undefined): string {
 
   if (subscriptionFilters?.length) {
     // Match the region from the subscription filter name, which is defined in the pulumi cloudwatch related definitions
-    // Eg. codesets-CloudWatchLogSubFilter-eu-central-1-dev-c1c1724 -> eu-central-1
+    // Eg. codesets-EdgeRegion-CloudWatchLogSubFilter-eu-central-1-dev-c1c1724 -> eu-central-1
     const regexp = new RegExp(
-      `codesets-CloudWatchLogSubFilter-(.*)-${stage}-(.*)`
+      `codesets-EdgeRegion-CloudWatchLogSubFilter-(.*)-${stage}-(.*)`
     );
     const subscriptionFilter = subscriptionFilters[0];
     const match = subscriptionFilter.match(regexp);
@@ -36,6 +36,7 @@ function resolveEventRegion(subscriptionFilters: string[] | undefined): string {
   }
 
   if (!region) throw new Error("Could not resolve event region.");
+
   return region;
 }
 
