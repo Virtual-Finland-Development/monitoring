@@ -140,7 +140,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
         source: "custom",
         content: {
           title: `:boom: ${subject} Error! :boom:`,
-          description: transformTextToMarkdown(messageString),
+          description: `\`\`\`${transformTextToMarkdown(messageString)}`,
           nextSteps: [
             // https://api.slack.com/reference/surfaces/formatting#links-in-retrieved-messages
             `<${logEventsUrl}|View in AWS console>`,
