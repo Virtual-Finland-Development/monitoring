@@ -40,8 +40,26 @@ function resolveEventRegion(subscriptionFilters: string[] | undefined): string {
   return region;
 }
 
-function getCodesetsDashboardUrl() {
-  return `https://${primaryRegion}.console.aws.amazon.com/cloudwatch/home?region=${primaryRegion}#dashboards/dashboard/codesets-dashboard-${stage}`;
+function getSubject(logGroup: string) {
+  if (logGroup.includes("codesets-LambdaAtEdge")) {
+    return "Codesets";
+  } else if (logGroup.includes("codesets-CacheUpdaterFunction")) {
+    return "Codesets cache";
+  } else if (logGroup.includes("escoApi")) {
+    return "Esco API";
+  } else {
+    return "Unknown";
+  }
+}
+
+function getDashboardUrl(subject: ReturnType<typeof getSubject>) {
+  switch (subject) {
+    case "Codesets":
+    case "Esco API":
+      return `https://${primaryRegion}.console.aws.amazon.com/cloudwatch/home?region=${primaryRegion}#dashboards/dashboard/codesets-dashboard-${stage}`;
+    default:
+      return undefined;
+  }
 }
 
 function publishSnsMessage(topicArn: string, subject: string, message: string) {
@@ -66,18 +84,6 @@ function transformTextToMarkdown(text: string) {
   // The first and last quote are removed
   text = text.replace(/^"/, "").replace(/"$/, "");
   return text;
-}
-
-function getSubject(logGroup: string) {
-  if (logGroup.includes("codesets-LambdaAtEdge")) {
-    return "Codesets";
-  } else if (logGroup.includes("codesets-CacheUpdaterFunction")) {
-    return "Codesets cache";
-  } else if (logGroup.includes("escoApi")) {
-    return "Esco API";
-  } else {
-    return "Unknown";
-  }
 }
 
 const snsClient = new SNSClient({ region: primaryRegion });
@@ -117,11 +123,15 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       const messageString = JSON.stringify(message, null, 2);
       console.log("[Message]:", messageString);
 
-      const codesetsDashboardUrl = getCodesetsDashboardUrl();
+      const subject = getSubject(logGroup);
+      const dashboardUrl = getDashboardUrl(subject);
       const logGroupRegion = resolveEventRegion(parsed?.subscriptionFilters);
       const logEventsUrl = getLogEventsUrl(logGroupRegion, logGroup, logStream);
-      const emailMessage = `${messageString}\n\nView dashboard: ${codesetsDashboardUrl}\n\nView in AWS console: ${logEventsUrl}}`;
-      const subject = getSubject(logGroup);
+      let emailMessage = `${messageString}\n\nView in AWS console: ${logEventsUrl}}`;
+
+      if (dashboardUrl) {
+        emailMessage += `\n\nView dashboard: ${dashboardUrl}`;
+      }
 
       // for chatbot / slack integration, custom format needed
       // https://docs.aws.amazon.com/chatbot/latest/adminguide/custom-notifs.html
@@ -134,7 +144,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
           nextSteps: [
             // https://api.slack.com/reference/surfaces/formatting#links-in-retrieved-messages
             `<${logEventsUrl}|View in AWS console>`,
-            `<${codesetsDashboardUrl}|View dashboard>`,
+            ...(dashboardUrl ? [`<${dashboardUrl}|View dashboard>`] : []),
           ],
         },
       };
