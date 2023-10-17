@@ -91,6 +91,7 @@ interface ChatbotCustomFormat {
   content: {
     title: string;
     description: string;
+    keyWords?: string[];
     nextSteps?: string[];
   };
 }
@@ -113,6 +114,7 @@ function getChatbotCustomFormat(
     content: {
       title: `:boom: ${subject} Error! :boom:`,
       description: `\`\`\`${transformTextToMarkdown(message)}`,
+      keyWords: [`Virtual Finland ${stage}`, subject],
       nextSteps: [
         // https://api.slack.com/reference/surfaces/formatting#links-in-retrieved-messages
         `<${logEventsUrl}|View in AWS console>`,
