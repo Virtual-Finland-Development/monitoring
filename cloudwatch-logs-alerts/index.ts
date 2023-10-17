@@ -5,9 +5,16 @@ import { createSnsTopicAndSubscriptions } from "./resources/SNS";
 
 const setup = getSetup();
 
+// Flag to include chatbot slack config
+const useChatbotSlackIntegration = true;
+const includeChatbotSlackConfig =
+  setup.isProductionLikeEnvironment() && useChatbotSlackIntegration;
+
 // Create SNS topic and subscriptions
-const { snSTopicForEmail, snsTopicForChatbot } =
-  createSnsTopicAndSubscriptions(setup);
+const { snSTopicForEmail, snsTopicForChatbot } = createSnsTopicAndSubscriptions(
+  setup,
+  includeChatbotSlackConfig
+);
 
 // Lambda function that will pass codesets errors to SNS
 const errorSubLambdaFunction = createErrorSubLambdaFunction(
@@ -17,7 +24,9 @@ const errorSubLambdaFunction = createErrorSubLambdaFunction(
 );
 
 // Create AWS Chatbot Slack configuration for alerting
-createChatbotSlackConfig(setup, snsTopicForChatbot);
+if (includeChatbotSlackConfig) {
+  createChatbotSlackConfig(setup, snsTopicForChatbot!);
+}
 
 // Outputs
 export const errorSubLambdaFunctionArn = errorSubLambdaFunction.arn;

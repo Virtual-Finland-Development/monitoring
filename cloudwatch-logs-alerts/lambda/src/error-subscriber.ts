@@ -27,7 +27,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
   let uniqueServiceKey = "";
 
   try {
-    if (!stage || !primaryRegion || !snsTopicEmailArn || !snsTopicChatbotArn) {
+    if (!stage || !primaryRegion || !snsTopicEmailArn) {
       throw new Error("Required environment variables are missing.");
     }
 
@@ -71,15 +71,22 @@ export const handler = async (event: CloudWatchLogsEvent) => {
         dashboardUrl,
       });
 
-      // publish to sns topics
-      await Promise.all([
+      // sns promises, include chatbot sns topic if configured
+      const snsPromises = [
         publishSnsMessage(snsTopicEmailArn, subject, emailMessage),
-        publishSnsMessage(
-          snsTopicChatbotArn,
-          subject,
-          JSON.stringify(chatbotCustomFormat)
-        ),
-      ]);
+        ...(snsTopicChatbotArn
+          ? [
+              publishSnsMessage(
+                snsTopicChatbotArn,
+                subject,
+                JSON.stringify(chatbotCustomFormat)
+              ),
+            ]
+          : []),
+      ];
+
+      // publish to sns topics
+      await Promise.all(snsPromises);
 
       // clear flag after timeout
       setTimeout(

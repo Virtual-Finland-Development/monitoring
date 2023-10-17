@@ -17,22 +17,6 @@ permissions:
   contents: read
 
 jobs:
-  build-lambda:
-    name: Build Lambda
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-      - name: Build
-        working-directory: cloudwatch-logs-alerts/lambda
-        run: |
-          npm install
-          npm run build
-
   preview-and-deploy:
     name: Deploy with Pulumi
     runs-on: ubuntu-latest
@@ -66,4 +50,4 @@ jobs:
       - name: Preview stack
         run: pulumi preview
       - name: Deploy stack
-        run: pulumi up -y
+        run: npm run deploy

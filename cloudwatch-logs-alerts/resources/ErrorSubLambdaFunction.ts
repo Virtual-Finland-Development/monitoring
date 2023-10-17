@@ -5,7 +5,7 @@ import { ISetup } from "../utils/Setup";
 export function createErrorSubLambdaFunction(
   setup: ISetup,
   snsTopicForEmail: aws.sns.Topic,
-  snsTopicForChatbot: aws.sns.Topic
+  snsTopicForChatbot: aws.sns.Topic | undefined
 ) {
   const execRoleConfig = setup.getResourceConfig("FunctionExecRole");
 
@@ -36,7 +36,10 @@ export function createErrorSubLambdaFunction(
           {
             Effect: "Allow",
             Action: "sns:Publish",
-            Resource: [snsTopicForEmail.arn, snsTopicForChatbot.arn],
+            Resource: [
+              snsTopicForEmail.arn,
+              ...(snsTopicForChatbot ? [snsTopicForChatbot.arn] : []),
+            ],
           },
         ],
       }),
@@ -68,7 +71,9 @@ export function createErrorSubLambdaFunction(
         STAGE: setup.stage,
         PRIMARY_AWS_REGION: new pulumi.Config("aws").require("region"),
         SNS_TOPIC_EMAIL_ARN: snsTopicForEmail.arn,
-        SNS_TOPIC_CHATBOT_ARN: snsTopicForChatbot.arn,
+        ...(snsTopicForChatbot
+          ? { SNS_TOPIC_CHATBOT_ARN: snsTopicForChatbot.arn }
+          : {}),
       },
     },
   });

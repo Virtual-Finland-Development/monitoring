@@ -1,31 +1,23 @@
 import * as aws from "@pulumi/aws";
 import { ISetup } from "../utils/Setup";
 
-export function createSnsTopicAndSubscriptions(setup: ISetup) {
+export function createSnsTopicAndSubscriptions(
+  setup: ISetup,
+  includeChatbotSlackConfig: boolean
+) {
   // SNS topic for email subs
   const snSTopicForEmail = new aws.sns.Topic(
     setup.getResourceName("SnsTopicForEmail")
   );
 
   // SNS topic for chatbot
-  const snsTopicForChatbot = new aws.sns.Topic(
-    setup.getResourceName("SnsTopicForChatbot")
-  );
+  let snsTopicForChatbot: aws.sns.Topic | undefined = undefined;
 
-  // email subscribers
-  const emailEndpoints = [""];
-
-  // create sub for each subscriber
-  emailEndpoints.forEach((email, i) => {
-    new aws.sns.TopicSubscription(
-      setup.getResourceName(`SnsEmailSub-${i + 1}`),
-      {
-        protocol: "email",
-        endpoint: email,
-        topic: snSTopicForEmail.arn,
-      }
+  if (includeChatbotSlackConfig) {
+    snsTopicForChatbot = new aws.sns.Topic(
+      setup.getResourceName("SnsTopicForChatbot")
     );
-  });
+  }
 
   return {
     snSTopicForEmail,
