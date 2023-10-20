@@ -93,23 +93,11 @@ export const handler = async (event: CloudWatchLogsEvent) => {
         () => delete handlingSource[uniqueServiceKey],
         isHandlingTimeout
       );
-
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          message: `${subject} error passed to SNS topics`,
-        }),
-      };
     } else {
       console.log(`Already handling error for log group: ${logGroup}`);
     }
   } catch (err) {
     delete handlingSource[uniqueServiceKey];
-    console.error("Error:", err);
-
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error" }),
-    };
+    throw err;
   }
 };

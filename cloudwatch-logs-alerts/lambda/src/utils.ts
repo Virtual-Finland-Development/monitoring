@@ -43,8 +43,12 @@ function getSubject(logGroup: string) {
     return "Codesets";
   } else if (logGroup.includes("codesets-CacheUpdaterFunction")) {
     return "Codesets cache";
-  } else if (logGroup.includes("escoApi")) {
+  } else if (logGroup.startsWith("escoApi")) {
     return "Esco API";
+  } else if (logGroup.startsWith("/aws/lambda/users-api-")) {
+    return "Users API";
+  } else if (logGroup.startsWith("access-finland-log-group-")) {
+    return "Access Finland MVP";
   } else {
     return "Unknown";
   }
@@ -113,8 +117,8 @@ function getChatbotCustomFormat(
     source: "custom",
     content: {
       title: `:boom: ${subject} Error! :boom:`,
-      description: `\`\`\`${transformTextToMarkdown(message)}`,
-      keywords: [`Virtual Finland ${stage}`, subject],
+      description: `\`\`\`${transformTextToMarkdown(message)}\`\`\``,
+      keywords: ["Virtual Finland", stage as string, subject],
       nextSteps: [
         // https://api.slack.com/reference/surfaces/formatting#links-in-retrieved-messages
         `<${logEventsUrl}|View in AWS console>`,
