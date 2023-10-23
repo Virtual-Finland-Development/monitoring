@@ -1,5 +1,6 @@
 import { PublishCommand, SNSClient } from "@aws-sdk/client-sns";
 
+const organization = process.env.ORGANIZATION;
 const stage = process.env.STAGE;
 const primaryRegion = process.env.PRIMARY_AWS_REGION;
 
@@ -118,7 +119,7 @@ function getChatbotCustomFormat(
     content: {
       title: `:boom: ${subject} Error! :boom:`,
       description: `\`\`\`${transformTextToMarkdown(message)}\`\`\``,
-      keywords: ["Virtual Finland", stage as string, subject],
+      keywords: [organization!, stage!, subject],
       nextSteps: [
         // https://api.slack.com/reference/surfaces/formatting#links-in-retrieved-messages
         `<${logEventsUrl}|View in AWS console>`,

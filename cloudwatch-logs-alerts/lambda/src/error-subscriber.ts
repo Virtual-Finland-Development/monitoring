@@ -10,6 +10,7 @@ import {
   getChatbotCustomFormat,
 } from "./utils";
 
+const organization = process.env.ORGANIZATION;
 const stage = process.env.STAGE;
 const primaryRegion = process.env.PRIMARY_AWS_REGION;
 const snsTopicEmailArn = process.env.SNS_TOPIC_EMAIL_ARN;
@@ -27,7 +28,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
   let uniqueServiceKey = "";
 
   try {
-    if (!stage || !primaryRegion || !snsTopicEmailArn) {
+    if (!organization || !stage || !primaryRegion || !snsTopicEmailArn) {
       throw new Error("Required environment variables are missing.");
     }
 
