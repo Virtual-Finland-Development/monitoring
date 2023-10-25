@@ -8,7 +8,7 @@ const setup = getSetup();
 // Flag to include chatbot slack config
 const useChatbotSlackIntegration = true;
 const includeChatbotSlackConfig =
-  setup.isProductionLikeEnvironment() && useChatbotSlackIntegration;
+  setup.isMvpEnvironment() && useChatbotSlackIntegration;
 
 // Create SNS topic and subscriptions
 const { snSTopicForEmail, snsTopicForChatbot } = createSnsTopicAndSubscriptions(

@@ -22,6 +22,10 @@ function isProductionLikeEnvironment() {
   return stage.endsWith("production") || stage.endsWith("staging");
 }
 
+function isMvpEnvironment() {
+  return stage === "mvp-staging" || stage === "mvp-production";
+}
+
 const setup = {
   stage,
   projectName,
@@ -29,6 +33,7 @@ const setup = {
   getResourceConfig,
   getResourceName,
   isProductionLikeEnvironment,
+  isMvpEnvironment,
 };
 
 type ISetup = typeof setup;
