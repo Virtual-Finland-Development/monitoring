@@ -74,7 +74,7 @@ function publishSnsMessage(
   return snsClient.send(
     new PublishCommand({
       TopicArn: topicArn,
-      Subject: `${subject} Error!${includeStageContext ? ` (${stage})` : ""}}`,
+      Subject: `${subject} Error!${includeStageContext ? ` (${stage})` : ""}`,
       Message: message,
     })
   );
