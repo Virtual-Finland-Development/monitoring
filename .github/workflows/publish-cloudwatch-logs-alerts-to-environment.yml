@@ -47,7 +47,9 @@ jobs:
         run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
       - name: Set organization to config
         run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
+      - name: Build lambda
+        run: npm run build:lambda
       - name: Preview stack
         run: pulumi preview
       - name: Deploy stack
-        run: npm run deploy
+        run: pulumi up -y
