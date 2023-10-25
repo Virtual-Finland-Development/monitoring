@@ -6,11 +6,7 @@ Monitoring tools
 
 Centralized admin alerts system for Virtual Finland applications.
 
-Lambda function receives error logs from CloudWatch Logs, via log subscription filters. Subscriptions are registered per service basis (pulumi), configured in each service respectively. Currently included services are:
-
-- Codesets
-- Codesets cache updater
-- Esco API
+Lambda function receives error logs from CloudWatch Logs, via log subscription filters. Subscriptions are registered per service basis (pulumi), configured in each service respectively. Some of the configured services include, for example, Codetsets and Esco API.
 
 Lambda function routes received error messages to SNS topics. The following topics are configured:
 
