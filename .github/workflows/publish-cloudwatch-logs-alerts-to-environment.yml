@@ -1,0 +1,53 @@
+name: Publish CloudWatch Logs Alerts to selected environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment where to deploy the stack (dev, staging)
+        type: environment
+        required: true
+
+env:
+  PULUMI_ORGANIZATION: virtualfinland
+  AWS_REGION: eu-north-1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  preview-and-deploy:
+    name: Deploy with Pulumi
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+    defaults:
+      run:
+        working-directory: cloudwatch-logs-alerts
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+          cache: npm
+          cache-dependency-path: cloudwatch-logs-alerts/package-lock.json
+      - name: Configure AWS credentials
+        uses: Virtual-Finland-Development/infrastructure/.github/actions/configure-aws-credentials@main
+        with:
+          environment: ${{ inputs.environment }}
+          aws-region: ${{ env.AWS_REGION }}
+          pulumi-access-token: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Select Pulumi stack
+        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
+      - name: Set organization to config
+        run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
+      - name: Preview stack
+        run: pulumi preview
+      - name: Deploy stack
+        run: npm run deploy

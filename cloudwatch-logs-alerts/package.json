@@ -1,0 +1,16 @@
+{
+  "name": "cloudwatch-logs-alerts",
+  "main": "index.ts",
+  "scripts": {
+    "build:lambda": "cd lambda && npm install && npm run build",
+    "deploy": "npm run build:lambda && pulumi up -y"
+  },
+  "devDependencies": {
+    "@types/node": "^16"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^6.4.0",
+    "@pulumi/aws-native": "^0.79.0",
+    "@pulumi/pulumi": "^3.0.0"
+  }
+}

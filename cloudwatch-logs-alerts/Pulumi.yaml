@@ -1,0 +1,6 @@
+name: cloudwatch-logs-alerts
+runtime: nodejs
+description: A minimal TypeScript Pulumi program
+config:
+  aws:region: eu-north-1
+  aws-native:region: eu-north-1
