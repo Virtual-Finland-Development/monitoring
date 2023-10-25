@@ -48,7 +48,7 @@ export function createErrorSubLambdaFunction(
 
   // Attach basic lambda execution policy
   new aws.iam.RolePolicyAttachment(
-    setup.getResourceName("ErrorSubLambdaFunctionExecRolePolicyAttachment"),
+    setup.getResourceName("ErrorSubLambdaFuncExecRolePolicyAttachment"),
     {
       role: functionExecRole,
       policyArn:
@@ -56,7 +56,7 @@ export function createErrorSubLambdaFunction(
     }
   );
 
-  const functionConfig = setup.getResourceConfig("ErrorSubLambdaFunction");
+  const functionConfig = setup.getResourceConfig("ErrorSubLambdaFunc");
 
   const lambdaFunction = new aws.lambda.Function(functionConfig.name, {
     role: functionExecRole.arn,
