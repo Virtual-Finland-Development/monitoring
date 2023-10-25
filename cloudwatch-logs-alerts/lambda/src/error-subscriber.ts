@@ -74,7 +74,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
 
       // sns promises, include chatbot sns topic if configured
       const snsPromises = [
-        publishSnsMessage(snsTopicEmailArn, subject, emailMessage),
+        publishSnsMessage(snsTopicEmailArn, subject, emailMessage, true),
         ...(snsTopicChatbotArn
           ? [
               publishSnsMessage(

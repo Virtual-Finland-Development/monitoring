@@ -65,11 +65,16 @@ function getDashboardUrl(subject: ReturnType<typeof getSubject>) {
   }
 }
 
-function publishSnsMessage(topicArn: string, subject: string, message: string) {
+function publishSnsMessage(
+  topicArn: string,
+  subject: string,
+  message: string,
+  includeStageContext?: boolean
+) {
   return snsClient.send(
     new PublishCommand({
       TopicArn: topicArn,
-      Subject: `${subject} Error!`,
+      Subject: `${subject} Error!${includeStageContext ? ` (${stage})` : ""}}`,
       Message: message,
     })
   );
