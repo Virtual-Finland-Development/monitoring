@@ -58,7 +58,7 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       const logEventsUrl = getLogEventsUrl(logGroupRegion, logGroup, logStream);
       let emailMessage = `${transformTextToMarkdown(
         messageString
-      )}\n\nView in AWS console: ${logEventsUrl}}`;
+      )}\n\nView in AWS console: ${logEventsUrl}`;
 
       if (dashboardUrl) {
         emailMessage += `\n\nView dashboard: ${dashboardUrl}`;
