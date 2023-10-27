@@ -1,6 +1,14 @@
 import { CloudWatchLogsEvent } from "aws-lambda";
 import { gunzipSync } from "node:zlib";
-import { getChatbotCustomFormat, getDashboardUrl, getLogEventsUrl, getSubject, publishSnsMessage, resolveEventRegion, transformTextToMarkdown } from "./utils";
+import {
+  getSubject,
+  getDashboardUrl,
+  resolveEventRegion,
+  getLogEventsUrl,
+  publishSnsMessage,
+  transformTextToMarkdown,
+  getChatbotCustomFormat,
+} from "./utils";
 
 const organization = process.env.ORGANIZATION;
 const stage = process.env.STAGE;
@@ -39,7 +47,8 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       handlingSource[uniqueServiceKey] = true;
 
       console.log("[Parsed]:", parsed);
-      const message = parsed?.logEvents[0]?.message ?? "Message could not be parsed.";
+      const message =
+        parsed?.logEvents[0]?.message ?? "Message could not be parsed.";
       const messageString = JSON.stringify(message, null, 2);
       console.log("[Message]:", messageString);
 
@@ -47,7 +56,9 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       const dashboardUrl = getDashboardUrl(subject);
       const logGroupRegion = resolveEventRegion(parsed?.subscriptionFilters);
       const logEventsUrl = getLogEventsUrl(logGroupRegion, logGroup, logStream);
-      let emailMessage = `${transformTextToMarkdown(messageString)}\n\nView in AWS console: ${logEventsUrl}`;
+      let emailMessage = `${transformTextToMarkdown(
+        messageString
+      )}\n\nView in AWS console: ${logEventsUrl}`;
 
       if (dashboardUrl) {
         emailMessage += `\n\nView dashboard: ${dashboardUrl}`;
@@ -64,14 +75,25 @@ export const handler = async (event: CloudWatchLogsEvent) => {
       // sns promises, include chatbot sns topic if configured
       const snsPromises = [
         publishSnsMessage(snsTopicEmailArn, subject, emailMessage, true),
-        ...(snsTopicChatbotArn ? [publishSnsMessage(snsTopicChatbotArn, subject, JSON.stringify(chatbotCustomFormat))] : []),
+        ...(snsTopicChatbotArn
+          ? [
+              publishSnsMessage(
+                snsTopicChatbotArn,
+                subject,
+                JSON.stringify(chatbotCustomFormat)
+              ),
+            ]
+          : []),
       ];
 
       // publish to sns topics
       await Promise.all(snsPromises);
 
       // clear flag after timeout
-      setTimeout(() => delete handlingSource[uniqueServiceKey], isHandlingTimeout);
+      setTimeout(
+        () => delete handlingSource[uniqueServiceKey],
+        isHandlingTimeout
+      );
     } else {
       console.log(`Already handling error for log group: ${logGroup}`);
     }
