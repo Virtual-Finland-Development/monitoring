@@ -1,5 +1,6 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
+import { ensurePrefix } from "./string-helpers";
 
 const stack = pulumi.getStack();
 const projectName = pulumi.getProject();
@@ -7,18 +8,27 @@ const config = new pulumi.Config();
 const org: string = config.require("org");
 const region = new pulumi.Config("aws").require("region");
 
-// Stack references
+// Users API references
 const usersApiStackReference = new pulumi.StackReference(`${org}/users-api/${stack}`);
-const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput("DBIdentifier").apply((v) => v.toString());
-const usersApiLambdaId = usersApiStackReference.getOutput("LambdaId").apply((v) => v.toString());
+const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput("DBIdentifier");
+const usersApiLambdaId = usersApiStackReference.getOutput("LambdaId");
+
+// Static references
+const audienceLabels = new pulumi.Config("audienceLabels");
+
+// Access Finland MVP references
+const mvpStackReference = new pulumi.StackReference(`${org}/access-finland/${ensurePrefix("mvp-", stack)}`);
+const mvpDistributionId = mvpStackReference.getOutput("CloudFrontDistributionId");
+const mvpEcsServiceName = mvpStackReference.getOutput("FargateServiceName");
+const mvpEcsClusterName = mvpStackReference.getOutput("FargateClusterName");
 
 // Combine all resources to single output that we can use below on the dashboard
-const resources = pulumi.all([usersApiDbInstanceIdentifier, usersApiLambdaId]);
+const resources = pulumi.all([usersApiDbInstanceIdentifier, usersApiLambdaId, mvpDistributionId, mvpEcsServiceName, mvpEcsClusterName]);
 
 // noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
-  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier, usersApiLambdaId]) =>
+  dashboardBody: resources.apply(([usersApiDbInstanceIdentifier, usersApiLambdaId, mvpDistributionId, mvpEcsServiceName, mvpEcsClusterName]) =>
     JSON.stringify({
       widgets: [
         {
@@ -51,6 +61,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 max: 100,
               },
             },
+            title: "Database connections",
           },
         },
         {
@@ -79,7 +90,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           x: 0,
           type: "text",
           properties: {
-            markdown: "## Users API performance \nTechinal statistics of the users-api operations\n\n",
+            markdown: "## Users API - Performance \nTechinal statistics of the users-api operations\n",
             background: "transparent",
           },
         },
@@ -87,24 +98,29 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           height: 6,
           width: 6,
           y: 7,
-          x: 0,
+          x: 8,
           type: "metric",
           properties: {
             metrics: [
-              ["VirtualFinland.UsersAPI", "RequestsTotalPerAudience", "Audience", "6fa88191-477e-4082-a119-e1e3ad09b7be", { region: region, label: "Access Finland QA - Sinuna" }],
-              ["...", "e6a5a645-0cf6-48a1-9f08-3d72be3aceaf", { region: region, label: "Testbed" }],
+              [
+                "VirtualFinland.UsersAPI",
+                "RequestsTotalPerAudience",
+                "Audience",
+                "6fa88191-477e-4082-a119-e1e3ad09b7be",
+                { region: region, label: audienceLabels.get("6fa88191-477e-4082-a119-e1e3ad09b7be") },
+              ],
+              ["...", "e6a5a645-0cf6-48a1-9f08-3d72be3aceaf", { region: region, label: audienceLabels.get("e6a5a645-0cf6-48a1-9f08-3d72be3aceaf") }],
             ],
             view: "bar",
             region: region,
             period: 300,
-            start: "-PT3H",
             stat: "Sum",
-            end: "P0D",
+            title: "Requests total per audiences",
           },
         },
         {
           height: 6,
-          width: 12,
+          width: 9,
           y: 13,
           x: 0,
           type: "metric",
@@ -117,16 +133,17 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             region: region,
             setPeriodToTimeRange: true,
             legend: {
-              position: "right",
+              position: "bottom",
             },
             period: 300,
             stat: "Average",
+            title: "Profiles count by auth issuer",
           },
         },
         {
           height: 3,
           width: 7,
-          y: 2,
+          y: 4,
           x: 0,
           type: "metric",
           properties: {
@@ -142,18 +159,18 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         {
           height: 2,
           width: 14,
-          y: 5,
+          y: 2,
           x: 0,
           type: "text",
           properties: {
-            markdown: "## Users API usage\nSpecific usage statistics\n",
+            markdown: "## Users API - Usage\nUsage statistics\n",
             background: "transparent",
           },
         },
         {
           height: 3,
           width: 8,
-          y: 2,
+          y: 4,
           x: 7,
           type: "metric",
           properties: {
@@ -164,23 +181,150 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             liveData: true,
             title: "Requests total",
             period: 300,
+            stat: "Sum",
           },
         },
         {
-          type: "metric",
-          x: 6,
-          y: 7,
-          width: 8,
           height: 6,
+          width: 8,
+          y: 7,
+          x: 0,
+          type: "metric",
           properties: {
             metrics: [
-              ["VirtualFinland.UsersAPI", "PersonsCountByAudience", "Audience", "6fa88191-477e-4082-a119-e1e3ad09b7be", { region: region, label: "Access Finland QA - Sinuna" }],
-              ["...", "e6a5a645-0cf6-48a1-9f08-3d72be3aceaf", { region: region, label: "Testbed" }],
+              [
+                "VirtualFinland.UsersAPI",
+                "PersonsCountByAudience",
+                "Audience",
+                "6fa88191-477e-4082-a119-e1e3ad09b7be",
+                { region: region, label: audienceLabels.get("6fa88191-477e-4082-a119-e1e3ad09b7be") },
+              ],
+              ["...", "e6a5a645-0cf6-48a1-9f08-3d72be3aceaf", { region: region, label: audienceLabels.get("e6a5a645-0cf6-48a1-9f08-3d72be3aceaf") }],
             ],
             view: "bar",
             region: region,
             period: 300,
-            stat: "Average",
+            stat: "Sum",
+            title: "Profiles count by audiences",
+          },
+        },
+        {
+          height: 6,
+          width: 6,
+          y: 39,
+          x: 0,
+          type: "metric",
+          properties: {
+            view: "timeSeries",
+            stacked: false,
+            metrics: [
+              ["AWS/ECS", "CPUUtilization", "ServiceName", mvpEcsServiceName, "ClusterName", mvpEcsClusterName],
+              [".", "MemoryUtilization", ".", ".", ".", "."],
+            ],
+            region: region,
+            title: "Access Finland MVP - Performance",
+          },
+        },
+        {
+          height: 8,
+          width: 7,
+          y: 29,
+          x: 0,
+          type: "metric",
+          properties: {
+            view: "timeSeries",
+            stacked: false,
+            metrics: [["AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", mvpDistributionId]],
+            region: "us-east-1",
+            title: "Requests (sum)",
+            yAxis: {
+              left: {
+                showUnits: false,
+              },
+              right: {
+                showUnits: false,
+              },
+            },
+            stat: "Sum",
+          },
+        },
+        {
+          height: 8,
+          width: 6,
+          y: 29,
+          x: 7,
+          type: "metric",
+          properties: {
+            view: "timeSeries",
+            stacked: false,
+            metrics: [
+              ["AWS/CloudFront", "BytesUploaded", "Region", "Global", "DistributionId", mvpDistributionId],
+              [".", "BytesDownloaded", ".", ".", ".", "."],
+            ],
+            region: "us-east-1",
+            title: "Data transfer",
+            yAxis: {
+              left: {
+                showUnits: false,
+              },
+              right: {
+                showUnits: false,
+              },
+            },
+            stat: "Sum",
+          },
+        },
+        {
+          height: 8,
+          width: 8,
+          y: 29,
+          x: 13,
+          type: "metric",
+          properties: {
+            view: "timeSeries",
+            stacked: false,
+            metrics: [
+              ["AWS/CloudFront", "TotalErrorRate", "Region", "Global", "DistributionId", mvpDistributionId],
+              [".", "4xxErrorRate", ".", ".", ".", ".", { label: "Total4xxErrors" }],
+              [".", "5xxErrorRate", ".", ".", ".", ".", { label: "Total5xxErrors" }],
+              [{ expression: "(m4+m5+m6)/m7*100", label: "5xxErrorByLambdaEdge", id: "e1" }],
+              ["AWS/CloudFront", "LambdaExecutionError", "Region", "Global", "DistributionId", mvpDistributionId, { id: "m4", stat: "Sum", visible: false }],
+              [".", "LambdaValidationError", ".", ".", ".", ".", { id: "m5", stat: "Sum", visible: false }],
+              [".", "LambdaLimitExceededError", ".", ".", ".", ".", { id: "m6", stat: "Sum", visible: false }],
+              [".", "Requests", ".", ".", ".", ".", { id: "m7", stat: "Sum", visible: false }],
+            ],
+            region: "us-east-1",
+            title: "Error rate (as a percentage of total requests)",
+            yAxis: {
+              left: {
+                showUnits: false,
+              },
+              right: {
+                showUnits: false,
+              },
+            },
+          },
+        },
+        {
+          height: 2,
+          width: 14,
+          y: 27,
+          x: 0,
+          type: "text",
+          properties: {
+            markdown: "## Access Finland MVP - Usage\nStatistics of AF MVP application\n",
+            background: "transparent",
+          },
+        },
+        {
+          height: 2,
+          width: 14,
+          y: 37,
+          x: 0,
+          type: "text",
+          properties: {
+            markdown: "## Access Finland MVP - Performance\nStatistics of AF MVP application\n",
+            background: "transparent",
           },
         },
       ],
