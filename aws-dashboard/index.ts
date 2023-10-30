@@ -39,7 +39,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         widgets: [
           {
             height: 2,
-            width: 15,
+            width: 24,
             y: 0,
             x: 0,
             type: "text",
@@ -50,9 +50,9 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 6,
-            width: 8,
-            y: 20,
-            x: 6,
+            width: 12,
+            y: 22,
+            x: 12,
             type: "metric",
             properties: {
               metrics: [
@@ -69,8 +69,8 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 2,
-            width: 14,
-            y: 18,
+            width: 24,
+            y: 20,
             x: 0,
             type: "text",
             properties: {
@@ -79,8 +79,8 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 5,
-            width: 7,
+            height: 7,
+            width: 11,
             y: 4,
             x: 0,
             type: "metric",
@@ -97,7 +97,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 2,
-            width: 14,
+            width: 24,
             y: 2,
             x: 0,
             type: "text",
@@ -107,10 +107,10 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 5,
-            width: 7,
+            height: 7,
+            width: 13,
             y: 4,
-            x: 7,
+            x: 11,
             type: "metric",
             properties: {
               sparkline: false,
@@ -126,26 +126,9 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 5,
-            width: 13,
-            y: 52,
-            x: 0,
-            type: "metric",
-            properties: {
-              view: "timeSeries",
-              stacked: false,
-              metrics: [
-                ["AWS/ECS", "CPUUtilization", "ServiceName", mvpEcsServiceName, "ClusterName", mvpEcsClusterName],
-                [".", "MemoryUtilization", ".", ".", ".", "."],
-              ],
-              region: region,
-              title: "Access Finland MVP - ECS Performance",
-            },
-          },
-          {
-            height: 5,
-            width: 7,
-            y: 40,
+            height: 4,
+            width: 12,
+            y: 45,
             x: 0,
             type: "metric",
             properties: {
@@ -153,7 +136,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               view: "timeSeries",
               stacked: false,
               region: "us-east-1",
-              title: "Requests (sum)",
+              title: "CloudFront - Requests (sum)",
               yAxis: {
                 left: {
                   showUnits: false,
@@ -167,10 +150,10 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 5,
-            width: 6,
-            y: 40,
-            x: 7,
+            height: 4,
+            width: 12,
+            y: 45,
+            x: 12,
             type: "metric",
             properties: {
               view: "timeSeries",
@@ -180,7 +163,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 [".", "BytesDownloaded", ".", ".", ".", "."],
               ],
               region: "us-east-1",
-              title: "Data transfer",
+              title: "CloudFront - Data transfer",
               yAxis: {
                 left: {
                   showUnits: false,
@@ -193,9 +176,9 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 5,
-            width: 13,
-            y: 45,
+            height: 6,
+            width: 12,
+            y: 49,
             x: 0,
             type: "metric",
             properties: {
@@ -212,7 +195,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 [".", "Requests", ".", ".", ".", ".", { id: "m7", stat: "Sum", visible: false }],
               ],
               region: "us-east-1",
-              title: "Error rate (as a percentage of total requests)",
+              title: "CloudFront - Error rate (as a percentage of total requests)",
               yAxis: {
                 left: {
                   showUnits: false,
@@ -225,8 +208,8 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 2,
-            width: 14,
-            y: 38,
+            width: 24,
+            y: 43,
             x: 0,
             type: "text",
             properties: {
@@ -237,7 +220,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 2,
             width: 14,
-            y: 50,
+            y: 55,
             x: 0,
             type: "text",
             properties: {
@@ -247,8 +230,8 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 6,
-            width: 6,
-            y: 20,
+            width: 12,
+            y: 22,
             x: 0,
             type: "metric",
             properties: {
@@ -264,9 +247,9 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 6,
-            width: 6,
-            y: 32,
+            height: 7,
+            width: 12,
+            y: 36,
             x: 0,
             type: "metric",
             properties: {
@@ -287,8 +270,8 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 6,
-            width: 7,
-            y: 12,
+            width: 6,
+            y: 14,
             x: 0,
             type: "metric",
             properties: {
@@ -306,9 +289,9 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 6,
-            width: 7,
-            y: 12,
-            x: 7,
+            width: 6,
+            y: 14,
+            x: 12,
             type: "metric",
             properties: {
               metrics: [
@@ -327,21 +310,21 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 3,
-            width: 14,
-            y: 9,
+            width: 24,
+            y: 11,
             x: 0,
             type: "text",
             properties: {
               markdown:
-                "\n### Audiences\nWhich application was used in the request\n\n- 6fa88191-477e-4082-a119-e1e3ad09b7be: Access Finland QA (Sinuna)\n- e6a5a645-0cf6-48a1-9f08-3d72be3aceaf: VF DemoApp (Tesbed) ",
+                "\n### Apps & Authentication issuers\nWhich application audiences and which authentication issuer were used in the requests\n\n- 6fa88191-477e-4082-a119-e1e3ad09b7be: Access Finland QA (Sinuna)\n- e6a5a645-0cf6-48a1-9f08-3d72be3aceaf: VF DemoApp (Tesbed) ",
               background: "transparent",
             },
           },
           {
-            height: 6,
-            width: 8,
-            y: 32,
-            x: 6,
+            height: 7,
+            width: 12,
+            y: 36,
+            x: 12,
             type: "metric",
             properties: {
               metrics: [
@@ -361,9 +344,9 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 6,
-            width: 6,
-            y: 26,
+            height: 8,
+            width: 12,
+            y: 28,
             x: 0,
             type: "metric",
             properties: {
@@ -382,10 +365,10 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 6,
-            width: 8,
-            y: 26,
-            x: 6,
+            height: 8,
+            width: 12,
+            y: 28,
+            x: 12,
             type: "metric",
             properties: {
               period: 300,
@@ -393,6 +376,138 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               region: region,
               stat: "Average",
               title: "Database connections",
+              yAxis: {
+                left: {
+                  min: 0,
+                },
+              },
+              view: "timeSeries",
+              stacked: false,
+            },
+          },
+          {
+            height: 6,
+            width: 12,
+            y: 57,
+            x: 0,
+            type: "metric",
+            properties: {
+              metrics: [
+                ["AWS/ECS", "CPUUtilization", "ServiceName", mvpEcsServiceName, "ClusterName", mvpEcsClusterName, { stat: "Minimum" }],
+                ["...", { stat: "Maximum" }],
+                ["...", { stat: "Average" }],
+              ],
+              period: 300,
+              region: region,
+              stacked: false,
+              title: "AF MVP - CPU utilization",
+              view: "timeSeries",
+            },
+          },
+          {
+            height: 6,
+            width: 12,
+            y: 57,
+            x: 12,
+            type: "metric",
+            properties: {
+              metrics: [
+                ["AWS/ECS", "MemoryUtilization", "ServiceName", mvpEcsServiceName, "ClusterName", mvpEcsClusterName, { stat: "Minimum" }],
+                ["...", { stat: "Maximum" }],
+                ["...", { stat: "Average" }],
+              ],
+              period: 300,
+              region: region,
+              stacked: false,
+              title: "AF MVP - Memory utilization",
+              view: "timeSeries",
+            },
+          },
+          {
+            height: 6,
+            width: 6,
+            y: 14,
+            x: 18,
+            type: "metric",
+            properties: {
+              view: "pie",
+              metrics: [
+                ["VirtualFinland.UsersAPI", "RequestsTotalPerIssuer", "Issuer", "https://login.iam.qa.sinuna.fi"],
+                ["...", "https://login.testbed.fi"],
+              ],
+              region: region,
+              title: "Requests per issuer",
+            },
+          },
+          {
+            height: 6,
+            width: 6,
+            y: 14,
+            x: 6,
+            type: "metric",
+            properties: {
+              view: "pie",
+              metrics: [
+                ["VirtualFinland.UsersAPI", "PersonsCountByIssuer", "Issuer", "https://login.iam.qa.sinuna.fi"],
+                ["...", "https://login.testbed.fi"],
+              ],
+              region: region,
+              title: "Profiles by issuer",
+            },
+          },
+          {
+            height: 6,
+            width: 12,
+            y: 49,
+            x: 12,
+            type: "metric",
+            properties: {
+              period: 60,
+              metrics: [
+                [
+                  "AWS/ApplicationELB",
+                  "RequestCount",
+                  "TargetGroup",
+                  "targetgroup/af-alb-tg-mvp-dev-173b693/fab0d0fa476846f7",
+                  "LoadBalancer",
+                  mvpAlbName,
+                  { label: "af-alb-tg-mvp-dev-173b693", region: region },
+                ],
+              ],
+              region: region,
+              stat: "Sum",
+              title: "Application Load Balancer - Requests",
+              yAxis: {
+                left: {
+                  min: 0,
+                },
+              },
+              view: "timeSeries",
+              stacked: false,
+            },
+          },
+          {
+            height: 6,
+            width: 12,
+            y: 63,
+            x: 0,
+            type: "metric",
+            properties: {
+              period: 60,
+              metrics: [
+                [
+                  "AWS/ApplicationELB",
+                  "TargetResponseTime",
+                  "TargetGroup",
+                  "targetgroup/af-alb-tg-mvp-dev-173b693/fab0d0fa476846f7",
+                  "LoadBalancer",
+                  mvpAlbName,
+                  { label: "af-alb-tg-mvp-dev-173b693", region: region },
+                ],
+              ],
+              region: region,
+              stat: "Average",
+              title: "Application Load Balancer - Target Response Time",
               yAxis: {
                 left: {
                   min: 0,
