@@ -4,5 +4,3 @@ description: A minimal AWS TypeScript Pulumi program
 config:
   aws-dashboard:org: virtualfinland
   aws:region: eu-north-1
-  audienceLabels:6fa88191-477e-4082-a119-e1e3ad09b7be: Access Finland QA - Sinuna
-  audienceLabels:e6a5a645-0cf6-48a1-9f08-3d72be3aceaf: Testbed

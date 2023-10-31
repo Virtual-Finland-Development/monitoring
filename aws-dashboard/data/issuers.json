@@ -1,0 +1,10 @@
+[
+    {
+        "issuer": "https://login.iam.qa.sinuna.fi",
+        "description": "Sinuna QA"
+    },
+    {
+        "issuer": "https://login.testbed.fi",
+        "description": "Testbed"
+    }
+]

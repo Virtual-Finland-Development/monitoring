@@ -1,5 +1,6 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
+import * as fs from "fs";
 import { ensurePrefix } from "./string-helpers";
 
 const stack = pulumi.getStack();
@@ -15,9 +16,10 @@ const usersApiLambdaId = usersApiStackReference.getOutput("LambdaId");
 const usersApiElastiCacheClusterId = usersApiStackReference.getOutput("ElastiCacheClusterId");
 
 // Static references
-const audienceLabelsConfig = new pulumi.Config("audienceLabels");
-function getAudienceLabelsHelperTextList() {
-  return Object.keys(audienceLabelsConfig).map((key) => `- ${key}: ${audienceLabelsConfig.get(key)}`);
+const audiences = JSON.parse(fs.readFileSync("./data/audiences.json", "utf8")) as Array<{ audience: string; description: string }>;
+const issuers = JSON.parse(fs.readFileSync("./data/issuers.json", "utf8")) as Array<{ issuer: string; description: string }>;
+function constructMetricsFor(metricName: string, dimensionName: string, dimensionValue: string) {
+  return ["VirtualFinland.UsersAPI", metricName, dimensionName, dimensionValue, { region: region }];
 }
 
 // Access Finland MVP references
@@ -60,6 +62,17 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
       // Extract the resource ID from the ARN
       const mvpAlbId = mvpAlbArn.substring(mvpAlbArn.indexOf("/") + 1);
 
+      // Prep metrics by the static ref data
+      const requestsTotalPerIssuerMetrics = issuers.map((issuer) => constructMetricsFor("RequestsTotalPerIssuer", "Issuer", issuer.issuer));
+      const personsCountByIssuerMetrics = issuers.map((issuer) => constructMetricsFor("PersonsCountByIssuer", "Issuer", issuer.issuer));
+      const requestTotalByAudienceMetrics = audiences.map((audience) => constructMetricsFor("RequestsTotalPerAudience", "Audience", audience.audience));
+      const personsCountByAudienceMetrics = audiences.map((audience) => constructMetricsFor("PersonsCountByAudience", "Audience", audience.audience));
+
+      // Form up the disclaimer table
+      const disclaimerTableAudiences = audiences.map((a) => `Audience | \`${a.audience}\` | ${a.description}`).join("\n");
+      const disclaimerTableIssuers = issuers.map((i) => `Issuer | \`${i.issuer}\` | ${i.description}`).join("\n");
+      const disclaimerTable = `Type | Identifier | Description\n----|-----|-----\n${disclaimerTableIssuers}\n${disclaimerTableAudiences}`;
+
       return JSON.stringify({
         widgets: [
           {
@@ -76,7 +89,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 22,
+            y: 26,
             x: 12,
             type: "metric",
             properties: {
@@ -95,7 +108,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 2,
             width: 24,
-            y: 20,
+            y: 24,
             x: 0,
             type: "text",
             properties: {
@@ -153,7 +166,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 4,
             width: 12,
-            y: 45,
+            y: 49,
             x: 0,
             type: "metric",
             properties: {
@@ -177,7 +190,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 4,
             width: 12,
-            y: 45,
+            y: 49,
             x: 12,
             type: "metric",
             properties: {
@@ -203,7 +216,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 49,
+            y: 53,
             x: 0,
             type: "metric",
             properties: {
@@ -234,7 +247,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 2,
             width: 24,
-            y: 43,
+            y: 47,
             x: 0,
             type: "text",
             properties: {
@@ -245,7 +258,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 2,
             width: 14,
-            y: 61,
+            y: 65,
             x: 0,
             type: "text",
             properties: {
@@ -256,7 +269,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 22,
+            y: 26,
             x: 0,
             type: "metric",
             properties: {
@@ -274,7 +287,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 7,
             width: 12,
-            y: 36,
+            y: 40,
             x: 0,
             type: "metric",
             properties: {
@@ -296,15 +309,12 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 6,
-            y: 14,
+            y: 13,
             x: 0,
             type: "metric",
             properties: {
               view: "pie",
-              metrics: [
-                ["VirtualFinland.UsersAPI", "PersonsCountByAudience", "Audience", "6fa88191-477e-4082-a119-e1e3ad09b7be"],
-                ["...", "e6a5a645-0cf6-48a1-9f08-3d72be3aceaf"],
-              ],
+              metrics: personsCountByAudienceMetrics,
               region: region,
               setPeriodToTimeRange: true,
               sparkline: false,
@@ -315,14 +325,11 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 6,
-            y: 14,
+            y: 13,
             x: 12,
             type: "metric",
             properties: {
-              metrics: [
-                ["VirtualFinland.UsersAPI", "RequestsTotalPerAudience", "Audience", "e6a5a645-0cf6-48a1-9f08-3d72be3aceaf", { region: region }],
-                ["...", "6fa88191-477e-4082-a119-e1e3ad09b7be", { region: region }],
-              ],
+              metrics: requestTotalByAudienceMetrics,
               view: "pie",
               region: region,
               period: 300,
@@ -334,21 +341,20 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 3,
+            height: 2,
             width: 24,
             y: 11,
             x: 0,
             type: "text",
             properties: {
-              markdown:
-                "\n### Apps & Authentication issuers\nWhich application audiences and which authentication issuer were used in the requests\n\n- 6fa88191-477e-4082-a119-e1e3ad09b7be: Access Finland QA (Sinuna)\n- e6a5a645-0cf6-48a1-9f08-3d72be3aceaf: VF DemoApp (Tesbed) ",
+              markdown: "### Apps & Authentication issuers\nWhich application audiences and which authentication issuer were used in the requests.\n",
               background: "transparent",
             },
           },
           {
             height: 7,
             width: 12,
-            y: 36,
+            y: 40,
             x: 12,
             type: "metric",
             properties: {
@@ -371,7 +377,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 8,
             width: 12,
-            y: 28,
+            y: 32,
             x: 0,
             type: "metric",
             properties: {
@@ -392,7 +398,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 8,
             width: 12,
-            y: 28,
+            y: 32,
             x: 12,
             type: "metric",
             properties: {
@@ -413,7 +419,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 63,
+            y: 67,
             x: 0,
             type: "metric",
             properties: {
@@ -432,7 +438,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 63,
+            y: 67,
             x: 12,
             type: "metric",
             properties: {
@@ -451,30 +457,29 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 6,
-            y: 14,
+            y: 13,
             x: 18,
             type: "metric",
             properties: {
+              metrics: requestsTotalPerIssuerMetrics,
               view: "pie",
-              metrics: [
-                ["VirtualFinland.UsersAPI", "RequestsTotalPerIssuer", "Issuer", "https://login.iam.qa.sinuna.fi"],
-                ["...", "https://login.testbed.fi"],
-              ],
               region: region,
               title: "Requests per issuer",
+              period: 300,
+              stat: "Sum",
+              setPeriodToTimeRange: true,
+              sparkline: false,
+              trend: false,
             },
           },
           {
             height: 6,
             width: 6,
-            y: 14,
+            y: 13,
             x: 6,
             type: "metric",
             properties: {
-              metrics: [
-                ["VirtualFinland.UsersAPI", "PersonsCountByIssuer", "Issuer", "https://login.iam.qa.sinuna.fi", { region: region }],
-                ["VirtualFinland.UsersAPI", "PersonsCountByIssuer", "Issuer", "https://login.testbed.fi", { region: region }],
-              ],
+              metrics: personsCountByIssuerMetrics,
               view: "pie",
               region: region,
               title: "Profiles by issuer",
@@ -484,7 +489,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 69,
+            y: 73,
             x: 0,
             type: "metric",
             properties: {
@@ -503,11 +508,11 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            type: "metric",
-            x: 0,
-            y: 55,
-            width: 12,
             height: 6,
+            width: 12,
+            y: 59,
+            x: 0,
+            type: "metric",
             properties: {
               view: "timeSeries",
               stacked: false,
@@ -517,11 +522,11 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            type: "metric",
-            x: 12,
-            y: 49,
-            width: 12,
             height: 6,
+            width: 12,
+            y: 53,
+            x: 12,
+            type: "metric",
             properties: {
               view: "timeSeries",
               stacked: false,
@@ -531,17 +536,45 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            type: "metric",
-            x: 12,
-            y: 55,
-            width: 12,
             height: 6,
+            width: 12,
+            y: 59,
+            x: 12,
+            type: "metric",
             properties: {
               view: "timeSeries",
               stacked: false,
               metrics: [["AWS/ApplicationELB", "ProcessedBytes", "LoadBalancer", mvpAlbId]],
               region: region,
               title: "ELB - ProcessedBytes",
+            },
+          },
+          {
+            type: "text",
+            x: 0,
+            y: 19,
+            width: 12,
+            height: 5,
+            properties: {
+              markdown: disclaimerTable,
+            },
+          },
+          {
+            type: "metric",
+            x: 12,
+            y: 19,
+            width: 12,
+            height: 5,
+            properties: {
+              view: "pie",
+              metrics: [[{ expression: 'SELECT SUM(RequestsPerContext) FROM SCHEMA("VirtualFinland.UsersAPI", Context) GROUP BY Context', label: "Query1", id: "q1" }]],
+              region: region,
+              stat: "Average",
+              period: 300,
+              legend: {
+                position: "right",
+              },
+              title: "Requests by context",
             },
           },
         ],
