@@ -25,17 +25,42 @@ const mvpStackReference = new pulumi.StackReference(`${org}/access-finland/${ens
 const mvpDistributionId = mvpStackReference.getOutput("CloudFrontDistributionId");
 const mvpEcsServiceName = mvpStackReference.getOutput("FargateServiceName");
 const mvpEcsClusterName = mvpStackReference.getOutput("EcsClusterName");
-const mvpAlbName = mvpStackReference.getOutput("AppLoadBalancerName");
+const mvpAlbArn = mvpStackReference.getOutput("AppLoadBalancerArn");
+const mvpCognitoPoolId = mvpStackReference.getOutput("CognitoUserPoolId");
+const mvpCognitoPoolClientId = mvpStackReference.getOutput("CongitoUserPoolClientId");
 
 // Combine all resources to single output that we can use below on the dashboard
-const resources = pulumi.all([usersApiDbInstanceIdentifier, usersApiLambdaId, mvpDistributionId, mvpEcsServiceName, mvpEcsClusterName, mvpAlbName, usersApiElastiCacheClusterId]);
+const resources = pulumi.all([
+  usersApiDbInstanceIdentifier,
+  usersApiLambdaId,
+  mvpDistributionId,
+  mvpEcsServiceName,
+  mvpEcsClusterName,
+  mvpAlbArn,
+  usersApiElastiCacheClusterId,
+  mvpCognitoPoolId,
+  mvpCognitoPoolClientId,
+]);
 
 // noinspection JSUnusedLocalSymbols
 const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
   dashboardName: `${projectName}-${stack}`,
   dashboardBody: resources.apply(
-    ([usersApiDbInstanceIdentifier, usersApiLambdaId, mvpDistributionId, mvpEcsServiceName, mvpEcsClusterName, mvpAlbName, usersApiElastiCacheClusterId]) =>
-      JSON.stringify({
+    ([
+      usersApiDbInstanceIdentifier,
+      usersApiLambdaId,
+      mvpDistributionId,
+      mvpEcsServiceName,
+      mvpEcsClusterName,
+      mvpAlbArn,
+      usersApiElastiCacheClusterId,
+      mvpCognitoPoolId,
+      mvpCognitoPoolClientId,
+    ]) => {
+      // Extract the resource ID from the ARN
+      const mvpAlbId = mvpAlbArn.substring(mvpAlbArn.indexOf("/") + 1);
+
+      return JSON.stringify({
         widgets: [
           {
             height: 2,
@@ -220,7 +245,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 2,
             width: 14,
-            y: 55,
+            y: 61,
             x: 0,
             type: "text",
             properties: {
@@ -388,7 +413,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 57,
+            y: 63,
             x: 0,
             type: "metric",
             properties: {
@@ -407,7 +432,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 57,
+            y: 63,
             x: 12,
             type: "metric",
             properties: {
@@ -446,68 +471,28 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             x: 6,
             type: "metric",
             properties: {
-              view: "pie",
               metrics: [
-                ["VirtualFinland.UsersAPI", "PersonsCountByIssuer", "Issuer", "https://login.iam.qa.sinuna.fi"],
-                ["...", "https://login.testbed.fi"],
+                ["VirtualFinland.UsersAPI", "PersonsCountByIssuer", "Issuer", "https://login.iam.qa.sinuna.fi", { region: region }],
+                ["VirtualFinland.UsersAPI", "PersonsCountByIssuer", "Issuer", "https://login.testbed.fi", { region: region }],
               ],
+              view: "pie",
               region: region,
               title: "Profiles by issuer",
+              setPeriodToTimeRange: true,
             },
           },
           {
             height: 6,
             width: 12,
-            y: 49,
-            x: 12,
-            type: "metric",
-            properties: {
-              period: 60,
-              metrics: [
-                [
-                  "AWS/ApplicationELB",
-                  "RequestCount",
-                  "TargetGroup",
-                  "targetgroup/af-alb-tg-mvp-dev-173b693/fab0d0fa476846f7",
-                  "LoadBalancer",
-                  mvpAlbName,
-                  { label: "af-alb-tg-mvp-dev-173b693", region: region },
-                ],
-              ],
-              region: region,
-              stat: "Sum",
-              title: "Application Load Balancer - Requests",
-              yAxis: {
-                left: {
-                  min: 0,
-                },
-              },
-              view: "timeSeries",
-              stacked: false,
-            },
-          },
-          {
-            height: 6,
-            width: 12,
-            y: 63,
+            y: 69,
             x: 0,
             type: "metric",
             properties: {
+              metrics: [["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", mvpAlbId, { region: region }]],
               period: 60,
-              metrics: [
-                [
-                  "AWS/ApplicationELB",
-                  "TargetResponseTime",
-                  "TargetGroup",
-                  "targetgroup/af-alb-tg-mvp-dev-173b693/fab0d0fa476846f7",
-                  "LoadBalancer",
-                  mvpAlbName,
-                  { label: "af-alb-tg-mvp-dev-173b693", region: region },
-                ],
-              ],
               region: region,
-              stat: "Average",
-              title: "Application Load Balancer - Target Response Time",
+              stat: "Sum",
+              title: "ELB - Target response time",
               yAxis: {
                 left: {
                   min: 0,
@@ -517,8 +502,51 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               stacked: false,
             },
           },
+          {
+            type: "metric",
+            x: 0,
+            y: 55,
+            width: 12,
+            height: 6,
+            properties: {
+              view: "timeSeries",
+              stacked: false,
+              metrics: [["AWS/Cognito", "SignInSuccesses", "UserPool", mvpCognitoPoolId, "UserPoolClient", mvpCognitoPoolClientId]],
+              region: region,
+              title: "Cognito - SignInSuccesses",
+            },
+          },
+          {
+            type: "metric",
+            x: 12,
+            y: 49,
+            width: 12,
+            height: 6,
+            properties: {
+              view: "timeSeries",
+              stacked: false,
+              metrics: [["AWS/ApplicationELB", "RequestCount", "LoadBalancer", mvpAlbId]],
+              region: region,
+              title: "ELB - RequestCount",
+            },
+          },
+          {
+            type: "metric",
+            x: 12,
+            y: 55,
+            width: 12,
+            height: 6,
+            properties: {
+              view: "timeSeries",
+              stacked: false,
+              metrics: [["AWS/ApplicationELB", "ProcessedBytes", "LoadBalancer", mvpAlbId]],
+              region: region,
+              title: "ELB - ProcessedBytes",
+            },
+          },
         ],
-      })
+      });
+    }
   ),
 });
 
