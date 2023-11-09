@@ -44,7 +44,7 @@ function getSubject(logGroup: string) {
     return "Codesets";
   } else if (logGroup.includes("codesets-CacheUpdaterFunction")) {
     return "Codesets cache";
-  } else if (logGroup.includes("escoApi")) {
+  } else if (logGroup.includes("esco-api-LambdaFunction")) {
     return "Esco API";
   } else if (logGroup.startsWith("/aws/lambda/users-api-")) {
     return "Users API";
