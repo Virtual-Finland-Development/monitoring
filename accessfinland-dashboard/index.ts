@@ -82,7 +82,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             x: 0,
             type: "text",
             properties: {
-              markdown: "# Virtual Finland Development dashboard\nUseful graphs and metrics for monitoring Virtual Finland services",
+              markdown: "# Access Finland dashboard\nUseful graphs and metrics for monitoring Access Finland services",
               background: "transparent",
             },
           },
