@@ -15,9 +15,14 @@ const usersApiDbInstanceIdentifier = usersApiStackReference.getOutput("DBIdentif
 const usersApiLambdaId = usersApiStackReference.getOutput("LambdaId");
 const usersApiElastiCacheClusterId = usersApiStackReference.getOutput("ElastiCacheClusterId");
 
+// Codesets
+const codesetsStackReference = new pulumi.StackReference(`${org}/codesets/${stack}`);
+const codesetsLambdaId = codesetsStackReference.getOutput("lambdaId");
+const codesetsDistributionId = codesetsStackReference.getOutput("cloudFrontDistributionId");
+const forwarderLogGroupName = new pulumi.StackReference(`${org}/cloudfront-log-forwarder/${stack}`).getOutput("logGroupName");
+
 // Static references
 const audiences = JSON.parse(fs.readFileSync("./data/audiences.json", "utf8")) as Array<{ audience: string; description: string }>;
-const issuers = JSON.parse(fs.readFileSync("./data/issuers.json", "utf8")) as Array<{ issuer: string; description: string }>;
 function constructMetricsFor(metricName: string, dimensionName: string, dimensionValue: string) {
   return ["VirtualFinland.UsersAPI", metricName, dimensionName, dimensionValue, { region: region }];
 }
@@ -42,6 +47,9 @@ const resources = pulumi.all([
   usersApiElastiCacheClusterId,
   mvpCognitoPoolId,
   mvpCognitoPoolClientId,
+  codesetsLambdaId,
+  codesetsDistributionId,
+  forwarderLogGroupName,
 ]);
 
 // noinspection JSUnusedLocalSymbols
@@ -58,20 +66,20 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
       usersApiElastiCacheClusterId,
       mvpCognitoPoolId,
       mvpCognitoPoolClientId,
+      codesetsLambdaId,
+      codesetsDistributionId,
+      forwarderLogGroupName,
     ]) => {
       // Extract the resource ID from the ARN
       const mvpAlbId = mvpAlbArn.substring(mvpAlbArn.indexOf("/") + 1);
 
       // Prep metrics by the static ref data
-      const requestsTotalPerIssuerMetrics = issuers.map((issuer) => constructMetricsFor("RequestsTotalPerIssuer", "Issuer", issuer.issuer));
-      const personsCountByIssuerMetrics = issuers.map((issuer) => constructMetricsFor("PersonsCountByIssuer", "Issuer", issuer.issuer));
       const requestTotalByAudienceMetrics = audiences.map((audience) => constructMetricsFor("RequestsTotalPerAudience", "Audience", audience.audience));
       const personsCountByAudienceMetrics = audiences.map((audience) => constructMetricsFor("PersonsCountByAudience", "Audience", audience.audience));
 
       // Form up the disclaimer table
-      const disclaimerTableAudiences = audiences.map((a) => `Audience | \`${a.audience}\` | ${a.description}`).join("\n");
-      const disclaimerTableIssuers = issuers.map((i) => `Issuer | \`${i.issuer}\` | ${i.description}`).join("\n");
-      const disclaimerTable = `Type | Identifier | Description\n----|-----|-----\n${disclaimerTableIssuers}\n${disclaimerTableAudiences}`;
+      const disclaimerTableAudiences = audiences.map((a) => `\`${a.audience}\` | ${a.description}`).join("\n");
+      const disclaimerTable = `Audience | Name\n----|-----\n${disclaimerTableAudiences}`;
 
       return JSON.stringify({
         widgets: [
@@ -89,7 +97,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 26,
+            y: 25,
             x: 12,
             type: "metric",
             properties: {
@@ -108,7 +116,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 2,
             width: 24,
-            y: 24,
+            y: 23,
             x: 0,
             type: "text",
             properties: {
@@ -166,14 +174,14 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 4,
             width: 12,
-            y: 49,
+            y: 48,
             x: 0,
             type: "metric",
             properties: {
-              metrics: [["AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", mvpDistributionId, { region: "us-east-1" }]],
+              metrics: [["AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", mvpDistributionId, { region: region }]],
               view: "timeSeries",
               stacked: false,
-              region: "us-east-1",
+              region: region,
               title: "CloudFront - Requests (sum)",
               yAxis: {
                 left: {
@@ -190,7 +198,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 4,
             width: 12,
-            y: 49,
+            y: 48,
             x: 12,
             type: "metric",
             properties: {
@@ -200,7 +208,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 ["AWS/CloudFront", "BytesUploaded", "Region", "Global", "DistributionId", mvpDistributionId],
                 [".", "BytesDownloaded", ".", ".", ".", "."],
               ],
-              region: "us-east-1",
+              region: region,
               title: "CloudFront - Data transfer",
               yAxis: {
                 left: {
@@ -216,7 +224,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 53,
+            y: 52,
             x: 0,
             type: "metric",
             properties: {
@@ -232,7 +240,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 [".", "LambdaLimitExceededError", ".", ".", ".", ".", { id: "m6", stat: "Sum", visible: false }],
                 [".", "Requests", ".", ".", ".", ".", { id: "m7", stat: "Sum", visible: false }],
               ],
-              region: "us-east-1",
+              region: region,
               title: "CloudFront - Error rate (as a percentage of total requests)",
               yAxis: {
                 left: {
@@ -247,7 +255,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 2,
             width: 24,
-            y: 47,
+            y: 46,
             x: 0,
             type: "text",
             properties: {
@@ -258,7 +266,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 2,
             width: 14,
-            y: 65,
+            y: 64,
             x: 0,
             type: "text",
             properties: {
@@ -269,7 +277,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 26,
+            y: 25,
             x: 0,
             type: "metric",
             properties: {
@@ -287,7 +295,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 7,
             width: 12,
-            y: 40,
+            y: 39,
             x: 0,
             type: "metric",
             properties: {
@@ -326,7 +334,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             height: 6,
             width: 6,
             y: 13,
-            x: 12,
+            x: 6,
             type: "metric",
             properties: {
               metrics: requestTotalByAudienceMetrics,
@@ -354,7 +362,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 7,
             width: 12,
-            y: 40,
+            y: 39,
             x: 12,
             type: "metric",
             properties: {
@@ -377,7 +385,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 8,
             width: 12,
-            y: 32,
+            y: 31,
             x: 0,
             type: "metric",
             properties: {
@@ -398,7 +406,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 8,
             width: 12,
-            y: 32,
+            y: 31,
             x: 12,
             type: "metric",
             properties: {
@@ -419,7 +427,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 67,
+            y: 66,
             x: 0,
             type: "metric",
             properties: {
@@ -438,7 +446,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 67,
+            y: 66,
             x: 12,
             type: "metric",
             properties: {
@@ -456,40 +464,8 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           },
           {
             height: 6,
-            width: 6,
-            y: 13,
-            x: 18,
-            type: "metric",
-            properties: {
-              metrics: requestsTotalPerIssuerMetrics,
-              view: "pie",
-              region: region,
-              title: "Requests per issuer",
-              period: 300,
-              stat: "Sum",
-              setPeriodToTimeRange: true,
-              sparkline: false,
-              trend: false,
-            },
-          },
-          {
-            height: 6,
-            width: 6,
-            y: 13,
-            x: 6,
-            type: "metric",
-            properties: {
-              metrics: personsCountByIssuerMetrics,
-              view: "pie",
-              region: region,
-              title: "Profiles by issuer",
-              setPeriodToTimeRange: true,
-            },
-          },
-          {
-            height: 6,
             width: 12,
-            y: 73,
+            y: 72,
             x: 0,
             type: "metric",
             properties: {
@@ -510,7 +486,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 59,
+            y: 58,
             x: 0,
             type: "metric",
             properties: {
@@ -524,7 +500,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 53,
+            y: 52,
             x: 12,
             type: "metric",
             properties: {
@@ -538,7 +514,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           {
             height: 6,
             width: 12,
-            y: 59,
+            y: 58,
             x: 12,
             type: "metric",
             properties: {
@@ -550,24 +526,25 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            type: "text",
-            x: 0,
-            y: 19,
+            height: 4,
             width: 12,
-            height: 5,
+            y: 19,
+            x: 0,
+            type: "text",
             properties: {
               markdown: disclaimerTable,
+              background: "transparent",
             },
           },
           {
-            type: "metric",
-            x: 12,
-            y: 19,
+            height: 6,
             width: 12,
-            height: 5,
+            y: 13,
+            x: 12,
+            type: "metric",
             properties: {
               view: "pie",
-              metrics: [[{ expression: 'SELECT SUM(RequestsPerContext) FROM SCHEMA("VirtualFinland.UsersAPI", Context) GROUP BY Context', label: "Query1", id: "q1" }]],
+              metrics: [[{ expression: 'SELECT SUM(RequestsPerContext) FROM SCHEMA("VirtualFinland.UsersAPI", Context) GROUP BY Context', label: "", id: "q1" }]],
               region: region,
               stat: "Average",
               period: 300,
@@ -575,6 +552,147 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 position: "right",
               },
               title: "Requests by context",
+            },
+          },
+          {
+            height: 2,
+            width: 24,
+            y: 78,
+            x: 0,
+            type: "text",
+            properties: {
+              markdown: "## Codesets API monitoring",
+              background: "transparent",
+            },
+          },
+          {
+            height: 8,
+            width: 8,
+            y: 80,
+            x: 0,
+            type: "metric",
+            properties: {
+              view: "timeSeries",
+              stacked: false,
+              metrics: [["AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", codesetsDistributionId]],
+              region: region,
+              title: "Requests (sum)",
+              yAxis: {
+                left: {
+                  showUnits: false,
+                },
+                right: {
+                  showUnits: false,
+                },
+              },
+              stat: "Sum",
+            },
+          },
+          {
+            height: 8,
+            width: 8,
+            y: 80,
+            x: 8,
+            type: "metric",
+            properties: {
+              view: "timeSeries",
+              stacked: false,
+              metrics: [
+                [
+                  "AWS/Lambda",
+                  "Invocations",
+                  "FunctionName",
+                  `us-east-1.${codesetsLambdaId.split(":")[0]}`,
+                  "Resource",
+                  `us-east-1.${codesetsLambdaId}`,
+                  { id: "m1", visible: true, label: "US-East (N. Virginia)" },
+                ],
+                ["...", { region: "us-east-2", id: "m2", visible: true, label: "US-East (Ohio)" }],
+                ["...", { region: "us-west-1", id: "m3", visible: true, label: "US-West (N. California)" }],
+                ["...", { region: "us-west-2", id: "m4", visible: true, label: "US-West (Oregon)" }],
+                ["...", { region: "ap-south-1", id: "m5", visible: true, label: "Asia Pacific (Mumbai)" }],
+                ["...", { region: "ap-northeast-1", id: "m6", visible: true, label: "Asia Pacific (Tokyo)" }],
+                ["...", { region: "ap-northeast-2", id: "m7", visible: true, label: "Asia Pacific (Seoul)" }],
+                ["...", { region: "ap-southeast-1", id: "m8", visible: true, label: "Asia Pacific (Singapore)" }],
+                ["...", { region: "ap-southeast-2", id: "m9", visible: true, label: "Asia Pacific (Sydney)" }],
+                ["...", { region: "eu-west-1", id: "m10", visible: true, label: "EU (Ireland)" }],
+                ["...", { region: "eu-west-2", id: "m11", visible: true, label: "EU (London)" }],
+                ["...", { region: "eu-central-1", id: "m12", visible: true, label: "EU (Frankfurt)" }],
+                ["...", { region: "sa-east-1", id: "m13", visible: true, label: "South America (Sao Paulo)" }],
+                [{ expression: "(m1+m2+m3+m4+m5+m6+m7+m8+m9+m10+m11+m12+m13)", label: "Global (sum)" }],
+              ],
+              region: region,
+              title: "Invocations (sum)",
+              period: 300,
+              yAxis: {
+                left: {
+                  showUnits: false,
+                },
+                right: {
+                  showUnits: false,
+                },
+              },
+              stat: "Sum",
+            },
+          },
+          {
+            height: 8,
+            width: 8,
+            y: 80,
+            x: 16,
+            type: "metric",
+            properties: {
+              view: "timeSeries",
+              stacked: false,
+              metrics: [
+                ["AWS/CloudFront", "TotalErrorRate", "Region", "Global", "DistributionId", codesetsDistributionId],
+                [".", "4xxErrorRate", ".", ".", ".", ".", { label: "Total4xxErrors" }],
+                [".", "5xxErrorRate", ".", ".", ".", ".", { label: "Total5xxErrors" }],
+                [{ expression: "(m4+m5+m6)/m7*100", label: "5xxErrorByLambdaEdge", id: "e1" }],
+                ["AWS/CloudFront", "LambdaExecutionError", "Region", "Global", "DistributionId", codesetsDistributionId, { id: "m4", stat: "Sum", visible: false }],
+                [".", "LambdaValidationError", ".", ".", ".", ".", { id: "m5", stat: "Sum", visible: false }],
+                [".", "LambdaLimitExceededError", ".", ".", ".", ".", { id: "m6", stat: "Sum", visible: false }],
+                [".", "Requests", ".", ".", ".", ".", { id: "m7", stat: "Sum", visible: false }],
+              ],
+              region: region,
+              title: "Error rate (as a percentage of total requests)",
+              yAxis: {
+                left: {
+                  showUnits: false,
+                },
+                right: {
+                  showUnits: false,
+                },
+              },
+            },
+          },
+          {
+            height: 6,
+            width: 8,
+            y: 88,
+            x: 8,
+            type: "log",
+            properties: {
+              query:
+                "SOURCE '" +
+                forwarderLogGroupName +
+                "' | #fields `x-edge-detailed-result-type` | stats count() by `x-edge-detailed-result-type`\nfields `x-edge-location` as x_edge_location | stats count() by x_edge_location ",
+              region: region,
+              title: "CloudFront distribution edge locations hit",
+              view: "pie",
+            },
+          },
+          {
+            height: 6,
+            width: 8,
+            y: 88,
+            x: 0,
+            type: "log",
+            properties: {
+              query: "SOURCE '" + forwarderLogGroupName + "' | fields `x-edge-detailed-result-type` | stats count() by `x-edge-detailed-result-type`",
+              region: region,
+              title: "CloudFront distribution hit results",
+              view: "pie",
             },
           },
         ],

@@ -59,7 +59,7 @@ function getDashboardUrl(subject: ReturnType<typeof getSubject>) {
   switch (subject) {
     case "Codesets":
     case "Esco API":
-      return `https://${primaryRegion}.console.aws.amazon.com/cloudwatch/home?region=${primaryRegion}#dashboards/dashboard/codesets-dashboard-${stage}`;
+      return `https://${primaryRegion}.console.aws.amazon.com/cloudwatch/home?region=${primaryRegion}#dashboards/dashboard/esco-api-dashboard-${stage}`;
     default:
       return undefined;
   }

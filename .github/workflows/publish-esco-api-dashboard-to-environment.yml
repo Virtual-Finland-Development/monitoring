@@ -25,14 +25,14 @@ jobs:
       PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
     defaults:
       run:
-        working-directory: codesets-dashboard
+        working-directory: esco-api-dashboard
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: "16.x"
           cache: npm
-          cache-dependency-path: codesets-dashboard/package-lock.json
+          cache-dependency-path: esco-api-dashboard/package-lock.json
       - name: Configure AWS credentials
         uses: Virtual-Finland-Development/infrastructure/.github/actions/configure-aws-credentials@main
         with:

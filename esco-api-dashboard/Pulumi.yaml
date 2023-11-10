@@ -1,6 +1,6 @@
-name: codesets-dashboard
+name: esco-api-dashboard
 runtime: nodejs
 description: A minimal AWS TypeScript Pulumi program
 config:
   aws:region: eu-north-1
-  codesets-dashboard:org: virtualfinland
+  esco-api-dashboard:org: virtualfinland
