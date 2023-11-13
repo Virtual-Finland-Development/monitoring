@@ -7,11 +7,7 @@ const primaryRegion = process.env.PRIMARY_AWS_REGION;
 const snsClient = new SNSClient({ region: primaryRegion });
 
 // https://stackoverflow.com/questions/60796991/is-there-a-way-to-generate-the-aws-console-urls-for-cloudwatch-log-group-filters
-function getLogEventsUrl(
-  logGroupRegion: string,
-  logGroup: string,
-  logStream: string
-) {
+function getLogEventsUrl(logGroupRegion: string, logGroup: string, logStream: string) {
   return `https://console.aws.amazon.com/cloudwatch/home?region=${logGroupRegion}#logEventViewer:group=${logGroup};stream=${logStream}`;
 }
 
@@ -23,9 +19,7 @@ function resolveEventRegion(subscriptionFilters: string[] | undefined): string {
   if (subscriptionFilters?.length) {
     // Match the region from the subscription filter name, which is defined in the pulumi cloudwatch related definitions
     // Eg. codesets-EdgeRegion-CloudWatchLogSubFilter-eu-central-1-dev-c1c1724 -> eu-central-1
-    const regexp = new RegExp(
-      `(.*)-EdgeRegion-CloudWatchLogSubFilter-(.*)-${stage}-(.*)`
-    );
+    const regexp = new RegExp(`(.*)-EdgeRegion-CloudWatchLogSubFilter-(.*)-${stage}-(.*)`);
     const subscriptionFilter = subscriptionFilters[0];
     const match = subscriptionFilter.match(regexp);
 
@@ -56,21 +50,16 @@ function getSubject(logGroup: string) {
 }
 
 function getDashboardUrl(subject: ReturnType<typeof getSubject>) {
-  switch (subject) {
-    case "Codesets":
-    case "Esco API":
-      return `https://${primaryRegion}.console.aws.amazon.com/cloudwatch/home?region=${primaryRegion}#dashboards/dashboard/esco-api-dashboard-${stage}`;
-    default:
-      return undefined;
+  if (subject === "Unknown") {
+    return undefined;
   }
+
+  let dashboardName = "accessfinland-dashboard";
+  if (subject === "Esco API") dashboardName = "esco-api-dashboard";
+  return `https://${primaryRegion}.console.aws.amazon.com/cloudwatch/home?region=${primaryRegion}#dashboards/dashboard/${dashboardName}-${stage}`;
 }
 
-function publishSnsMessage(
-  topicArn: string,
-  subject: string,
-  message: string,
-  includeStageContext?: boolean
-) {
+function publishSnsMessage(topicArn: string, subject: string, message: string, includeStageContext?: boolean) {
   return snsClient.send(
     new PublishCommand({
       TopicArn: topicArn,
@@ -113,9 +102,7 @@ interface ChatbotCustomFormatParams {
   dashboardUrl?: string;
 }
 
-function getChatbotCustomFormat(
-  params: ChatbotCustomFormatParams
-): ChatbotCustomFormat {
+function getChatbotCustomFormat(params: ChatbotCustomFormatParams): ChatbotCustomFormat {
   const { subject, message, logEventsUrl, dashboardUrl } = params;
 
   return {
@@ -134,12 +121,4 @@ function getChatbotCustomFormat(
   };
 }
 
-export {
-  getLogEventsUrl,
-  resolveEventRegion,
-  getSubject,
-  getDashboardUrl,
-  publishSnsMessage,
-  transformTextToMarkdown,
-  getChatbotCustomFormat,
-};
+export { getChatbotCustomFormat, getDashboardUrl, getLogEventsUrl, getSubject, publishSnsMessage, resolveEventRegion, transformTextToMarkdown };
