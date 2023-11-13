@@ -171,11 +171,11 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             x: 0,
             type: "metric",
             properties: {
-              metrics: [["AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", mvpDistributionId, { region: region }]],
+              metrics: [["AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", mvpDistributionId, { region: "us-east-1" }]],
               view: "timeSeries",
               stacked: false,
               region: region,
-              title: "CloudFront - Requests (sum)",
+              title: "CloudFront - Global requests (sum)",
               yAxis: {
                 left: {
                   showUnits: false,
@@ -201,7 +201,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 ["AWS/CloudFront", "BytesUploaded", "Region", "Global", "DistributionId", mvpDistributionId],
                 [".", "BytesDownloaded", ".", ".", ".", "."],
               ],
-              region: region,
+              region: "us-east-1", // Global region
               title: "CloudFront - Data transfer",
               yAxis: {
                 left: {
@@ -227,13 +227,13 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 ["AWS/CloudFront", "TotalErrorRate", "Region", "Global", "DistributionId", mvpDistributionId],
                 [".", "4xxErrorRate", ".", ".", ".", ".", { label: "Total4xxErrors" }],
                 [".", "5xxErrorRate", ".", ".", ".", ".", { label: "Total5xxErrors" }],
-                [{ expression: "(m4+m5+m6)/m7*100", label: "5xxErrorByLambdaEdge", id: "e1" }],
-                ["AWS/CloudFront", "LambdaExecutionError", "Region", "Global", "DistributionId", mvpDistributionId, { id: "m4", stat: "Sum", visible: false }],
-                [".", "LambdaValidationError", ".", ".", ".", ".", { id: "m5", stat: "Sum", visible: false }],
-                [".", "LambdaLimitExceededError", ".", ".", ".", ".", { id: "m6", stat: "Sum", visible: false }],
-                [".", "Requests", ".", ".", ".", ".", { id: "m7", stat: "Sum", visible: false }],
+                [{ expression: "(cfm4+cfm5+cfm6)/cfm7*100", label: "5xxErrorByLambdaEdge", id: "cfe1" }],
+                ["AWS/CloudFront", "LambdaExecutionError", "Region", "Global", "DistributionId", mvpDistributionId, { id: "cfm4", stat: "Sum", visible: false }],
+                [".", "LambdaValidationError", ".", ".", ".", ".", { id: "cfm5", stat: "Sum", visible: false }],
+                [".", "LambdaLimitExceededError", ".", ".", ".", ".", { id: "cfm6", stat: "Sum", visible: false }],
+                [".", "Requests", ".", ".", ".", ".", { id: "cfm7", stat: "Sum", visible: false }],
               ],
-              region: region,
+              region: "us-east-1", // Region for global metrics
               title: "CloudFront - Error rate (as a percentage of total requests)",
               yAxis: {
                 left: {
@@ -326,6 +326,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 ],
               ],
               region: region,
+              stat: "Sum",
               setPeriodToTimeRange: true,
               sparkline: false,
               trend: false,
@@ -546,9 +547,9 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             type: "metric",
             properties: {
               view: "pie",
-              metrics: [[{ expression: 'SELECT SUM(RequestsPerContext) FROM SCHEMA("VirtualFinland.UsersAPI", Context) GROUP BY Context', label: "", id: "q1" }]],
+              metrics: [[{ expression: 'SELECT SUM(RequestsPerContext) FROM SCHEMA("VirtualFinland.UsersAPI", Context) GROUP BY Context', label: "", id: "q3" }]],
               region: region,
-              stat: "Average",
+              stat: "Sum",
               period: 300,
               legend: {
                 position: "right",
@@ -577,7 +578,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               view: "timeSeries",
               stacked: false,
               metrics: [["AWS/CloudFront", "Requests", "Region", "Global", "DistributionId", codesetsDistributionId]],
-              region: region,
+              region: "us-east-1", // Region for global metrics
               title: "Requests (sum)",
               yAxis: {
                 left: {
@@ -607,21 +608,22 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                   `us-east-1.${codesetsLambdaId.split(":")[0]}`,
                   "Resource",
                   `us-east-1.${codesetsLambdaId}`,
-                  { id: "m1", visible: true, label: "US-East (N. Virginia)" },
+                  { id: "edgem1", visible: true, label: "US-East (N. Virginia)" },
                 ],
-                ["...", { region: "us-east-2", id: "m2", visible: true, label: "US-East (Ohio)" }],
-                ["...", { region: "us-west-1", id: "m3", visible: true, label: "US-West (N. California)" }],
-                ["...", { region: "us-west-2", id: "m4", visible: true, label: "US-West (Oregon)" }],
-                ["...", { region: "ap-south-1", id: "m5", visible: true, label: "Asia Pacific (Mumbai)" }],
-                ["...", { region: "ap-northeast-1", id: "m6", visible: true, label: "Asia Pacific (Tokyo)" }],
-                ["...", { region: "ap-northeast-2", id: "m7", visible: true, label: "Asia Pacific (Seoul)" }],
-                ["...", { region: "ap-southeast-1", id: "m8", visible: true, label: "Asia Pacific (Singapore)" }],
-                ["...", { region: "ap-southeast-2", id: "m9", visible: true, label: "Asia Pacific (Sydney)" }],
-                ["...", { region: "eu-west-1", id: "m10", visible: true, label: "EU (Ireland)" }],
-                ["...", { region: "eu-west-2", id: "m11", visible: true, label: "EU (London)" }],
-                ["...", { region: "eu-central-1", id: "m12", visible: true, label: "EU (Frankfurt)" }],
-                ["...", { region: "sa-east-1", id: "m13", visible: true, label: "South America (Sao Paulo)" }],
-                [{ expression: "(m1+m2+m3+m4+m5+m6+m7+m8+m9+m10+m11+m12+m13)", label: "Global (sum)" }],
+                ["...", { region: "us-east-2", id: "edgem2", visible: true, label: "US-East (Ohio)" }],
+                ["...", { region: "us-west-1", id: "edgem3", visible: true, label: "US-West (N. California)" }],
+                ["...", { region: "us-west-2", id: "edgem4", visible: true, label: "US-West (Oregon)" }],
+                ["...", { region: "ap-south-1", id: "edgem5", visible: true, label: "Asia Pacific (Mumbai)" }],
+                ["...", { region: "ap-northeast-1", id: "edgem6", visible: true, label: "Asia Pacific (Tokyo)" }],
+                ["...", { region: "ap-northeast-2", id: "edgem7", visible: true, label: "Asia Pacific (Seoul)" }],
+                ["...", { region: "ap-southeast-1", id: "edgem8", visible: true, label: "Asia Pacific (Singapore)" }],
+                ["...", { region: "ap-southeast-2", id: "edgem9", visible: true, label: "Asia Pacific (Sydney)" }],
+                ["...", { region: "eu-west-1", id: "edgem10", visible: true, label: "EU (Ireland)" }],
+                ["...", { region: "eu-west-2", id: "edgem11", visible: true, label: "EU (London)" }],
+                ["...", { region: "eu-central-1", id: "edgem12", visible: true, label: "EU (Frankfurt)" }],
+                ["...", { region: "eu-north-1", id: "edgem13", visible: true, label: "EU (Frankfurt)" }],
+                ["...", { region: "sa-east-1", id: "edgem14", visible: true, label: "South America (Sao Paulo)" }],
+                [{ expression: "(edgem1+edgem2+edgem3+edgem4+edgem5+edgem6+edgem7+edgem8+edgem9+edgem10+edgem11+edgem12+edgem13+edgem14)", label: "Global (sum)" }],
               ],
               region: region,
               title: "Invocations (sum)",
@@ -650,13 +652,13 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
                 ["AWS/CloudFront", "TotalErrorRate", "Region", "Global", "DistributionId", codesetsDistributionId],
                 [".", "4xxErrorRate", ".", ".", ".", ".", { label: "Total4xxErrors" }],
                 [".", "5xxErrorRate", ".", ".", ".", ".", { label: "Total5xxErrors" }],
-                [{ expression: "(m4+m5+m6)/m7*100", label: "5xxErrorByLambdaEdge", id: "e1" }],
-                ["AWS/CloudFront", "LambdaExecutionError", "Region", "Global", "DistributionId", codesetsDistributionId, { id: "m4", stat: "Sum", visible: false }],
-                [".", "LambdaValidationError", ".", ".", ".", ".", { id: "m5", stat: "Sum", visible: false }],
-                [".", "LambdaLimitExceededError", ".", ".", ".", ".", { id: "m6", stat: "Sum", visible: false }],
-                [".", "Requests", ".", ".", ".", ".", { id: "m7", stat: "Sum", visible: false }],
+                [{ expression: "(cm4+cm5+cm6)/cm7*100", label: "5xxErrorByLambdaEdge", id: "ce2" }],
+                ["AWS/CloudFront", "LambdaExecutionError", "Region", "Global", "DistributionId", codesetsDistributionId, { id: "cm4", stat: "Sum", visible: false }],
+                [".", "LambdaValidationError", ".", ".", ".", ".", { id: "cm5", stat: "Sum", visible: false }],
+                [".", "LambdaLimitExceededError", ".", ".", ".", ".", { id: "cm6", stat: "Sum", visible: false }],
+                [".", "Requests", ".", ".", ".", ".", { id: "cm7", stat: "Sum", visible: false }],
               ],
-              region: region,
+              region: "us-east-1", // Global
               title: "Error rate (as a percentage of total requests)",
               yAxis: {
                 left: {
@@ -678,7 +680,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               query:
                 "SOURCE '" +
                 forwarderLogGroupName +
-                "' | #fields `x-edge-detailed-result-type` | stats count() by `x-edge-detailed-result-type`\nfields `x-edge-location` as x_edge_location | stats count() by x_edge_location ",
+                "' | #fields `x-edge-detailed-result-type` | stats count() by `x-edge-detailed-result-type`\nfields `x-edge-location` as x_edge_location | stats count() by x_edge_location",
               region: region,
               title: "CloudFront distribution edge locations hit",
               view: "pie",
