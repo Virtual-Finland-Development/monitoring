@@ -9,3 +9,4 @@
 /cloudfront-log-forwarder/src/obj/
 .vscode
 monitoring.sln
+dist
