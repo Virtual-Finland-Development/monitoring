@@ -23,9 +23,6 @@ const forwarderLogGroupName = new pulumi.StackReference(`${org}/cloudfront-log-f
 
 // Static references
 const audiences = JSON.parse(fs.readFileSync("./data/audiences.json", "utf8")) as Array<{ audience: string; description: string }>;
-function constructMetricsFor(metricName: string, dimensionName: string, dimensionValue: string) {
-  return ["VirtualFinland.UsersAPI", metricName, dimensionName, dimensionValue, { region: region }];
-}
 
 // Access Finland MVP references
 const mvpStackReference = new pulumi.StackReference(`${org}/access-finland/${ensurePrefix("mvp-", stack)}`);
@@ -72,10 +69,6 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
     ]) => {
       // Extract the resource ID from the ARN
       const mvpAlbId = mvpAlbArn.substring(mvpAlbArn.indexOf("/") + 1);
-
-      // Prep metrics by the static ref data
-      const requestTotalByAudienceMetrics = audiences.map((audience) => constructMetricsFor("RequestsTotalPerAudience", "Audience", audience.audience));
-      const personsCountByAudienceMetrics = audiences.map((audience) => constructMetricsFor("PersonsCountByAudience", "Audience", audience.audience));
 
       // Form up the disclaimer table
       const disclaimerTableAudiences = audiences.map((a) => `\`${a.audience}\` | ${a.description}`).join("\n");
@@ -322,7 +315,16 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             type: "metric",
             properties: {
               view: "pie",
-              metrics: personsCountByAudienceMetrics,
+              metrics: [
+                [
+                  {
+                    expression: 'SELECT SUM(PersonsCountByAudience) FROM SCHEMA("VirtualFinland.UsersAPI", Audience) GROUP BY Audience',
+                    label: "",
+                    id: "q1",
+                    region: region,
+                  },
+                ],
+              ],
               region: region,
               setPeriodToTimeRange: true,
               sparkline: false,
@@ -337,7 +339,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             x: 6,
             type: "metric",
             properties: {
-              metrics: requestTotalByAudienceMetrics,
+              metrics: [[{ expression: 'SELECT SUM(RequestsTotalPerAudience) FROM SCHEMA("VirtualFinland.UsersAPI", Audience) GROUP BY Audience', label: "", id: "q2" }]],
               view: "pie",
               region: region,
               period: 300,
