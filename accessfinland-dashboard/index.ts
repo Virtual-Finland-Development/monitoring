@@ -118,13 +118,13 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 7,
+            height: 4,
             width: 11,
             y: 4,
             x: 0,
             type: "metric",
             properties: {
-              sparkline: true,
+              sparkline: false,
               view: "singleValue",
               metrics: [["VirtualFinland.UsersAPI", "PersonsCount", { region: region }]],
               region: region,
@@ -146,7 +146,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
             },
           },
           {
-            height: 7,
+            height: 4,
             width: 13,
             y: 4,
             x: 11,
@@ -345,7 +345,7 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
               region: region,
               period: 300,
               stat: "Sum",
-              title: "Requests per audience",
+              title: "Requests by audience",
               setPeriodToTimeRange: true,
               sparkline: false,
               trend: false,
