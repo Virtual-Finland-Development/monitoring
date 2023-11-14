@@ -1,11 +1,11 @@
-name: Publish AWS dashboard to dev
+name: Publish codesets dashboard to dev
 
 on:
   push:
     branches:
       - main
     paths:
-      - aws-dashboard/**
+      - esco-api-dashboard/**
 
 env:
   PULUMI_ORGANIZATION: virtualfinland
@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 jobs:
-  deployment:
+  preview-and-deploy:
     name: Deploy with Pulumi
     runs-on: ubuntu-latest
     environment: dev
@@ -24,7 +24,7 @@ jobs:
       PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
     defaults:
       run:
-        working-directory: aws-dashboard
+        working-directory: esco-api-dashboard
     steps:
       - uses: actions/checkout@v3
 
@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: "16.x"
           cache: npm
-          cache-dependency-path: aws-dashboard/package-lock.json
+          cache-dependency-path: esco-api-dashboard/package-lock.json
 
       - name: Configure AWS credentials
         uses: Virtual-Finland-Development/infrastructure/.github/actions/configure-aws-credentials@main
@@ -50,11 +50,11 @@ jobs:
       - name: Select Pulumi stack
         run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/dev --create
 
-      - name: Set organization in config
+      - name: Set organization to config
         run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
 
-      - name: Preview Pulumi stack
+      - name: Preview stack
         run: pulumi preview
 
-      - name: Deploy dashboard to AWS
+      - name: Deploy stack
         run: pulumi up -y

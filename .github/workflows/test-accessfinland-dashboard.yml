@@ -1,31 +1,27 @@
-name: Publish AWS dashboard to selected environment
+name: Preview and run tests on AWS dashboard
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: Environment where to deploy the stack (dev, staging)
-        type: environment
-        required: true
+  pull_request:
+    paths:
+      - accessfinland-dashboard/**
 
 env:
   PULUMI_ORGANIZATION: virtualfinland
-  aws_region: eu-north-1
+  AWS_REGION: eu-north-1
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  deployment:
-    name: Deploy with Pulumi
+  preview-and-test:
+    name: Preview and run tests
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
     env:
       PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
     defaults:
       run:
-        working-directory: aws-dashboard
+        working-directory: accessfinland-dashboard
     steps:
       - uses: actions/checkout@v3
 
@@ -33,13 +29,13 @@ jobs:
         with:
           node-version: "16.x"
           cache: npm
-          cache-dependency-path: aws-dashboard/package-lock.json
+          cache-dependency-path: accessfinland-dashboard/package-lock.json
 
       - name: Configure AWS credentials
         uses: Virtual-Finland-Development/infrastructure/.github/actions/configure-aws-credentials@main
         with:
-          environment: ${{ inputs.environment }}
-          aws-region: ${{ env.aws_region }}
+          environment: dev
+          aws-region: ${{ env.AWS_REGION }}
           pulumi-access-token: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
       - name: Install Pulumi CLI
@@ -48,14 +44,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Select Pulumi stack
-        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/${{ inputs.environment }} --create
+      - name: Select stack
+        run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/dev --create
 
-      - name: Set organization in config
+      - name: Set organization to config
         run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
 
       - name: Preview Pulumi stack
         run: pulumi preview
-
-      - name: Deploy dashboard to AWS
-        run: pulumi up -y

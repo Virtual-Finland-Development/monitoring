@@ -1,9 +1,11 @@
-name: Preview and run tests on AWS dashboard
+name: Publish AWS dashboard to dev
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main
     paths:
-      - aws-dashboard/**
+      - accessfinland-dashboard/**
 
 env:
   PULUMI_ORGANIZATION: virtualfinland
@@ -14,14 +16,15 @@ permissions:
   contents: read
 
 jobs:
-  preview-and-test:
-    name: Preview and run tests
+  deployment:
+    name: Deploy with Pulumi
     runs-on: ubuntu-latest
+    environment: dev
     env:
       PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
     defaults:
       run:
-        working-directory: aws-dashboard
+        working-directory: accessfinland-dashboard
     steps:
       - uses: actions/checkout@v3
 
@@ -29,7 +32,7 @@ jobs:
         with:
           node-version: "16.x"
           cache: npm
-          cache-dependency-path: aws-dashboard/package-lock.json
+          cache-dependency-path: accessfinland-dashboard/package-lock.json
 
       - name: Configure AWS credentials
         uses: Virtual-Finland-Development/infrastructure/.github/actions/configure-aws-credentials@main
@@ -44,11 +47,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Select stack
+      - name: Select Pulumi stack
         run: pulumi stack select ${{ env.PULUMI_ORGANIZATION }}/dev --create
 
-      - name: Set organization to config
+      - name: Set organization in config
         run: pulumi config set org ${{ env.PULUMI_ORGANIZATION }}
 
       - name: Preview Pulumi stack
         run: pulumi preview
+
+      - name: Deploy dashboard to AWS
+        run: pulumi up -y

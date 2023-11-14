@@ -1,6 +1,9 @@
 {
     "name": "cloudront-log-fowarder",
     "main": "index.ts",
+    "scripts": {
+        "build": "mkdir -p dist && cd src && dotnet lambda package && cd .. && cp ./src/bin/Release/net6.0/src.zip ./dist/"
+    },
     "devDependencies": {
         "@types/node": "^16"
     },

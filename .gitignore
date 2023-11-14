@@ -8,3 +8,5 @@
 /cloudfront-log-forwarder/src/bin/
 /cloudfront-log-forwarder/src/obj/
 .vscode
+monitoring.sln
+dist

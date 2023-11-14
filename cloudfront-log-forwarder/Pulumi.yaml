@@ -3,3 +3,4 @@ runtime: nodejs
 description: Setup for delivering Cloud Front logs from S3 to CloudWatch
 config:
   aws:region: eu-north-1
+  cloudfront-log-forwarder:applicationArtifactPath: dist/src.zip
