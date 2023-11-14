@@ -1,4 +1,4 @@
-name: Preview and run tests on AWS dashboard
+name: Preview and run tests on Access Finland dashboard
 
 on:
   pull_request:

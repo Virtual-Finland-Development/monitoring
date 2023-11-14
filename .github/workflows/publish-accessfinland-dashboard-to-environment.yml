@@ -1,4 +1,4 @@
-name: Publish AWS dashboard to selected environment
+name: Publish Access Finland dashboard to selected environment
 
 on:
   workflow_dispatch:

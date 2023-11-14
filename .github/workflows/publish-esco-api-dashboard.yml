@@ -1,4 +1,4 @@
-name: Publish codesets dashboard to dev
+name: Publish Esco API dashboard to dev
 
 on:
   push:

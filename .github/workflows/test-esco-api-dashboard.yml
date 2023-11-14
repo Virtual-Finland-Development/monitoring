@@ -1,4 +1,4 @@
-name: Preview and run tests on codesets dashboard
+name: Preview and run tests on esco-api dashboard
 
 on:
   pull_request:

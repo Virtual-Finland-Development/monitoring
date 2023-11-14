@@ -1,4 +1,4 @@
-name: Publish AWS dashboard to dev
+name: Publish Access Finland dashboard to dev
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Publish codesets dashboard to selected environment
+name: Publish Esco API dashboard to selected environment
 
 on:
   workflow_dispatch:
