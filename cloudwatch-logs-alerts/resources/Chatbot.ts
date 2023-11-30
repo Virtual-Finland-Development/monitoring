@@ -6,13 +6,8 @@ import { ISetup } from "../utils/Setup";
 const config = new pulumi.Config();
 
 export function createChatbotSlackConfig(setup: ISetup, snsTopic: aws.sns.Topic) {
-  const slackChannelId = config.get("slackChannelId");
-  const slackWorkspaceId = config.get("slackWorkspaceId");
-
-  if (!slackChannelId || !slackWorkspaceId) {
-    console.log("Skipping Slack configuration as slackChannelId or slackWorkspaceId is not set");
-    return;
-  }
+  const slackChannelId = config.require("slackChannelId");
+  const slackWorkspaceId = config.require("slackWorkspaceId");
 
   // Create an IAM role for Chatbot configuration
   const chatbotRole = new aws.iam.Role(setup.getResourceName("ChatBotRole"), {
