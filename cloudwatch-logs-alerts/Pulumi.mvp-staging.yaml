@@ -1,4 +1,5 @@
 config:
+  cloudwatch-logs-alerts:useChatbotSlackIntegration: true
   cloudwatch-logs-alerts:slackChannelId:
     secure: AAABAJE7tRSlcbmmEQ6vvcelZTB/GKQX0rRW4nI/YT1oYoM+viBDT00zVg==
   cloudwatch-logs-alerts:slackWorkspaceId:
