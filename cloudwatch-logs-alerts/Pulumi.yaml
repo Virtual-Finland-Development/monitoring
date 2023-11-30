@@ -4,5 +4,4 @@ description: A minimal TypeScript Pulumi program
 config:
   aws:region: eu-north-1
   aws-native:region: eu-north-1
-  cloudwatch-logs-alerts:useChatbotSlackIntegration:
-    value: false
+  cloudwatch-logs-alerts:useChatbotSlackIntegration: false

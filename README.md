@@ -15,4 +15,7 @@ Lambda function routes received error messages to SNS topics. The following topi
   - Slack workspace and channel needs to be configured
   - AWS Chatbot needs to be added and configured for workspace, see https://docs.aws.amazon.com/chatbot/latest/adminguide/slack-setup.html#slack-client-setup
   - Only one channel can be registered per environment, meaning for each possible environments (dev, staging, prod, etc.) a different channel needs to configured
-  - Opt out: set `useChatbotSlackIntegration` flag to false in cloudwatch-logs-alerts/index.ts
+  - Opt in: set `useChatbotSlackIntegration` flag to true in pulumi config and configure `slackChannel` and `slackWorkspaceId` secrets accordingly:
+    - pulumi config set cloudwatch-logs-alerts:useChatbotSlackIntegration true
+    - pulumi config set --secret cloudwatch-logs-alerts:slackChannel <channel>
+    - pulumi config set --secret cloudwatch-logs-alerts:slackWorkspaceId <workspaceId>
