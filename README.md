@@ -16,9 +16,9 @@ CloudWatch dashboard for the Access Finland application and related services met
   - Statistics of the application usage, such as requests, error rate, cognito usage
   - Performance, CPU and memory metrics of the server
 
-## cloudfront-log-forwared
+## cloudfront-log-forwarder
 
-???
+Utility function that combines the different CloudFront edge-level logs of the Codesets-service to an unified CloudWatch log group. That log group is then used by the accessfinland-dashboard to present the usage stats for the codesets service.
 
 ## cloudwatch-logs-alerts
 
