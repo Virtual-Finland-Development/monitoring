@@ -4,7 +4,7 @@ Monitoring tools
 
 ## accessfinland-dashboard
 
-CloudWatch dashboard for the Access Finland application and related services metrics.
+CloudWatch dashboard for the Access Finland application and related services metrics and stats.
 
 - Apps & Authentication issuers - which application audiences and which authentication issuer were used in the requests
 - Users API:
