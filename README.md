@@ -2,6 +2,24 @@
 
 Monitoring tools
 
+## accessfinland-dashboard
+
+CloudWatch dashboard for the Access Finland application and related services metrics and stats.
+
+- Apps & Authentication issuers - which application audiences and which authentication issuer were used in the requests
+- Users API:
+  - Usage statistics
+  - Techinal statistics of the users-api operations, performance
+- Codesets API:
+  - Requests metrics
+- Access Finland MVP application:
+  - Statistics of the application usage, such as requests, error rate, cognito usage
+  - Performance, CPU and memory metrics of the server
+
+## cloudfront-log-forwarder
+
+Utility function that combines the different CloudFront edge-level logs of the Codesets-service to an unified CloudWatch log group. That log group is then used by the accessfinland-dashboard to present the usage stats for the codesets service.
+
 ## cloudwatch-logs-alerts
 
 Centralized admin alerts system for Virtual Finland applications.
@@ -19,3 +37,7 @@ Lambda function routes received error messages to SNS topics. The following topi
     - pulumi config set cloudwatch-logs-alerts:useChatbotSlackIntegration true
     - pulumi config set --secret cloudwatch-logs-alerts:slackChannelId \<slackChannelId\>
     - pulumi config set --secret cloudwatch-logs-alerts:slackWorkspaceId \<slackWorkspaceId\>
+
+## esco-api-dashboard
+
+CloudWatch dashboard for the ESCO API. Includes basic overview of API usage and error logs.
