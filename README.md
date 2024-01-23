@@ -14,7 +14,7 @@ CloudWatch dashboard for the Access Finland application and related services met
   - Requests metrics
 - Access Finland MVP application:
   - Statistics of the application usage, such as requests, error rate, cognito usage
-  - Performance, such as CPU and memory metrics of the server
+  - Performance, CPU and memory metrics of the server
 
 ## cloudfront-log-forwared
 
