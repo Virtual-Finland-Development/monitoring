@@ -19,3 +19,7 @@ Lambda function routes received error messages to SNS topics. The following topi
     - pulumi config set cloudwatch-logs-alerts:useChatbotSlackIntegration true
     - pulumi config set --secret cloudwatch-logs-alerts:slackChannelId \<slackChannelId\>
     - pulumi config set --secret cloudwatch-logs-alerts:slackWorkspaceId \<slackWorkspaceId\>
+
+# health-checks
+
+Route53 health checks for Virtual Finland applications.
