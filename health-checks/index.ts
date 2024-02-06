@@ -4,10 +4,15 @@ import * as pulumi from "@pulumi/pulumi";
 const organization = pulumi.getOrganization();
 const project = pulumi.getProject();
 const stack = pulumi.getStack();
-const tags = {
-  "vfd:stack": stack,
-  "vfd:project": project,
-};
+
+function getTags(resourceName: string) {
+  return {
+    "vfd:stack": stack,
+    "vfd:project": project,
+    "vfd:name": resourceName,
+  };
+}
+
 function getResourceName(name: string) {
   return `${project}-${name}-${stack}`;
 }
@@ -18,7 +23,6 @@ function parseDomainFromUrl(url: string) {
 }
 
 const requestInterval = 30;
-const referenceName = "health-checks";
 
 const usersApi = new pulumi.StackReference(`${organization}/users-api/${stack}`).getOutput("ApplicationUrl");
 const escoApi = new pulumi.StackReference(`${organization}/esco-api/${stack}`).getOutput("escoApiUrl");
@@ -27,46 +31,50 @@ const accessFinland = new pulumi.StackReference(`${organization}/access-finland/
 
 pulumi.all([usersApi, escoApi, codesets, accessFinland]).apply(async ([usersApi, escoApi, codesets, accessFinland]) => {
   new aws.route53.HealthCheck(getResourceName("users-api"), {
-    referenceName,
+    referenceName: "users-api",
     failureThreshold: 3,
     fqdn: parseDomainFromUrl(usersApi),
     port: 443,
     requestInterval,
     resourcePath: "/health-check",
     type: "HTTPS",
-    tags,
+    tags: getTags("users-api"),
+    measureLatency: true,
   });
 
   new aws.route53.HealthCheck(getResourceName("esco-api"), {
-    referenceName,
+    referenceName: "esco-api",
     failureThreshold: 3,
     fqdn: parseDomainFromUrl(escoApi),
     port: 443,
     requestInterval,
     resourcePath: "/health-check",
     type: "HTTPS",
-    tags,
+    tags: getTags("esco-api"),
+    measureLatency: true,
   });
 
   new aws.route53.HealthCheck(getResourceName("codesets"), {
-    referenceName,
+    referenceName: "codesets",
     failureThreshold: 3,
     fqdn: parseDomainFromUrl(codesets),
     port: 443,
     requestInterval,
     resourcePath: "/health-check",
     type: "HTTPS",
-    tags,
+    tags: getTags("codesets"),
+    measureLatency: true,
   });
 
   new aws.route53.HealthCheck(getResourceName("access-finland"), {
-    referenceName,
+    referenceName: "access-finland",
     failureThreshold: 3,
     fqdn: parseDomainFromUrl(accessFinland),
     port: 443,
     requestInterval,
     resourcePath: "/api/health-check",
     type: "HTTPS",
-    tags,
+    tags: getTags("access-finland"),
+    measureLatency: true,
   });
 });

@@ -20,8 +20,8 @@ Lambda function routes received error messages to SNS topics. The following topi
     - pulumi config set --secret cloudwatch-logs-alerts:slackChannelId \<slackChannelId\>
     - pulumi config set --secret cloudwatch-logs-alerts:slackWorkspaceId \<slackWorkspaceId\>
 
-# health-checks
+## health-checks
 
 Route53 health checks for Virtual Finland applications. 
 
-The deployment creates a health check for each configured service. The health checks can be then used to monitor and report the health metrics of the services in the [AWS Route53 console](https://us-east-1.console.aws.amazon.com/route53/healthchecks/home#/).
+The health checks can be used to monitor and report the health metrics of the services in the [AWS Route53 console](https://us-east-1.console.aws.amazon.com/route53/healthchecks/home#/). Note that the the health checks are deployed without a name, as the pulumi tooling lacks the option. Find out the name of the health by inspecting the tags (`vfd:name`) of the health check in the AWS console.
