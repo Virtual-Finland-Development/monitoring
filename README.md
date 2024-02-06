@@ -22,4 +22,6 @@ Lambda function routes received error messages to SNS topics. The following topi
 
 # health-checks
 
-Route53 health checks for Virtual Finland applications.
+Route53 health checks for Virtual Finland applications. 
+
+The deployment creates a health check for each configured service. The health checks can be then used to monitor and report the health metrics of the services in the [AWS Route53 console](https://us-east-1.console.aws.amazon.com/route53/healthchecks/home#/).
