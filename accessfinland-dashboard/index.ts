@@ -21,8 +21,14 @@ const codesetsLambdaId = codesetsStackReference.getOutput("lambdaId");
 const codesetsDistributionId = codesetsStackReference.getOutput("cloudFrontDistributionId");
 const forwarderLogGroupName = new pulumi.StackReference(`${org}/cloudfront-log-forwarder/${stack}`).getOutput("logGroupName");
 
-// Static references
-const audiences = JSON.parse(fs.readFileSync("./data/audiences.json", "utf8")) as Array<{ audience: string; description: string }>;
+// Static audiences reference
+const audiences = (function (stack: string) {
+  let dataPath = `./data/audiences.${stack}.json`;
+  if (!fs.existsSync(dataPath)) {
+    dataPath = `./data/audiences.dev.json`;
+  }
+  return JSON.parse(fs.readFileSync(dataPath, "utf8")) as Array<{ audience: string; description: string }>;
+})(stack);
 
 // Access Finland MVP references
 const mvpStackReference = new pulumi.StackReference(`${org}/access-finland/${ensurePrefix("mvp-", stack)}`);
