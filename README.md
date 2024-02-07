@@ -41,3 +41,11 @@ Lambda function routes received error messages to SNS topics. The following topi
 ## esco-api-dashboard
 
 CloudWatch dashboard for the ESCO API. Includes basic overview of API usage and error logs.
+
+## health-checks
+
+Route53 health checks for Virtual Finland applications. 
+
+The health checks can be used to monitor and report the health metrics of the services in the [AWS Route53 console](https://us-east-1.console.aws.amazon.com/route53/healthchecks/home#/). The checks work by sending HTTP requests to the services and reporting the status of the service based on the response. The health checks are done every 30 seconds and the service is considered unhealthy if the response is not 2xx. The checks also measure the duration of the request. The checks are done from the recommended AWS health checker regions.
+
+Note that the health checks are deployed without specifying a name to the AWS Console, as the pulumi tooling lacks the option. After deployment, find out the name of the specific health check item by inspecting the `vfd:name`-tag value and then update the name manually to the AWS Console.
