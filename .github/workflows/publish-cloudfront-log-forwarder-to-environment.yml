@@ -7,22 +7,21 @@ on:
         description: Environment where to deploy the stack (dev, staging)
         type: environment
         required: true
-        
+
 env:
   PULUMI_ORGANIZATION: virtualfinland
-        
+
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  
   build:
     name: Build Lambda function
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
@@ -40,7 +39,7 @@ jobs:
           name: Function_Artifact
           path: cloudfront-log-forwarder/src/bin/Release/net6.0/src.zip
           retention-days: 1
-            
+
   deploy:
     name: Deploy function to AWS ${{ inputs.environment }} environment
     runs-on: ubuntu-latest
@@ -52,18 +51,18 @@ jobs:
         working-directory: cloudfront-log-forwarder
     needs: build
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "16.x"
           cache: npm
           cache-dependency-path: cloudfront-log-forwarder/package-lock.json
-      - uses: pulumi/actions@v4
+      - uses: pulumi/actions@v5
         with:
           work-dir: ./cloudfront-log-forwarder/
-          
+
       - run: npm install
-          
+
       - uses: actions/download-artifact@v3
         with:
           name: Function_Artifact

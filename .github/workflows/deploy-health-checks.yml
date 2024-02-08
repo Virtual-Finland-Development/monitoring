@@ -43,7 +43,7 @@ jobs:
           pulumi-access-token: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
       - name: Install Pulumi CLI
-        uses: pulumi/actions@v4
+        uses: pulumi/actions@v5
 
       - name: Install dependencies
         run: npm ci
