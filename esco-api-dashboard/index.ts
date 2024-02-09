@@ -19,12 +19,26 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
         {
           type: "text",
           x: 0,
-          y: 24,
+          y: 0,
           width: 15,
           height: 2,
           properties: {
             markdown: "## ESCO API stats",
             background: "transparent",
+          },
+        },
+        {
+          height: 5,
+          width: 16,
+          y: 2,
+          x: 0,
+          type: "log",
+          properties: {
+            query: `SOURCE '/aws/lambda/${escoApiLambdaId}' | stats count(*) as Requests by bin(1h)\n| filter @message like 'trace' and @message not like 'Amazon-Route53-Health-Check-Service'`,
+            region: "eu-north-1",
+            stacked: false,
+            title: "Esco API requests",
+            view: "bar",
           },
         },
         {
