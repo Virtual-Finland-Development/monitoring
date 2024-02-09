@@ -34,11 +34,11 @@ const dashboard = new aws.cloudwatch.Dashboard(`${projectName}-${stack}`, {
           x: 0,
           type: "log",
           properties: {
-            query: `SOURCE '/aws/lambda/${escoApiLambdaId}' | stats count(*) as Requests by bin(1h)\n| filter @message like 'trace' and @message not like 'Amazon-Route53-Health-Check-Service'`,
+            query: `SOURCE '/aws/lambda/${escoApiLambdaId}' | fields @timestamp\n| stats count(*) as Requests by bin(0.5h)\n| filter @message like 'trace' and @message not like 'Amazon-Route53-Health-Check-Service' \n| sort @timestamp desc`,
             region: "eu-north-1",
             stacked: false,
             title: "Esco API requests",
-            view: "bar",
+            view: "timeSeries",
           },
         },
         {
